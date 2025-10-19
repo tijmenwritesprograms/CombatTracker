@@ -1,5 +1,7 @@
 # Combat Tracker - D&D Combat Management Application
 
+[![PR Pipeline](https://github.com/tijmenwritesprograms/CombatTracker/actions/workflows/pr-pipeline.yml/badge.svg)](https://github.com/tijmenwritesprograms/CombatTracker/actions/workflows/pr-pipeline.yml)
+
 A web application designed to manage and streamline combat encounters in tabletop RPGs, primarily Dungeons & Dragons (5e). Built with .NET 8, Blazor Server, and .NET Aspire orchestration.
 
 ## Features
