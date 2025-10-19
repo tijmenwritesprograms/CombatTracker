@@ -17,6 +17,7 @@ public class Attack
     /// <summary>
     /// Attack bonus to hit.
     /// </summary>
+    [Range(-5, 20)]
     public int AttackBonus { get; set; }
 
     /// <summary>

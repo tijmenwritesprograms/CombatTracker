@@ -16,7 +16,7 @@ public class CombatantInstance
     /// <summary>
     /// Initiative roll result for turn order.
     /// </summary>
-    [Range(1, 30)]
+    [Range(-4, 30)]
     public int Initiative { get; set; }
 
     /// <summary>
