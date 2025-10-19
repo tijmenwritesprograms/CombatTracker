@@ -10,11 +10,8 @@ on:
 jobs:
   build-and-test:
     name: Build and Test
-    # Run on multiple operating systems for broader compatibility testing
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    # Run only on Ubuntu for faster and simpler CI
+    runs-on: ubuntu-latest
     
     steps:
       # Check out the repository code
