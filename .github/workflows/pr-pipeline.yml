@@ -1,0 +1,45 @@
+name: PR Pipeline
+
+# Trigger this workflow on pull request events
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+# Define the build and test jobs
+jobs:
+  build-and-test:
+    name: Build and Test
+    # Run on multiple operating systems for broader compatibility testing
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      # Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Set up .NET SDK with the version specified in global.json
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      
+      # Install the .NET Aspire workload required for building the AppHost project
+      - name: Install Aspire workload
+        run: dotnet workload install aspire
+      
+      # Restore NuGet packages and dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      # Build the solution to ensure code compiles
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+      
+      # Run all tests in the solution
+      # Note: Currently no test projects exist, but this step is ready for when they are added
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
