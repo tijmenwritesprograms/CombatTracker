@@ -4,25 +4,26 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 
 ## Tech Stack
 
-- **Frontend**: React (or similar modern SPA framework)
-- **State Management**: Redux/Zustand or equivalent
-- **UI Library**: TailwindCSS or ShadCN UI
-- **Backend**: Node.js + Express or .NET API (cloud-backed option) or local storage (IndexedDB/browser storage for local app)
-- **Database**: SQLite or PostgreSQL (for cloud-backed) or IndexedDB (for local)
-- **AI Integration**: LLM endpoints for statblock parsing and combat narration
+- **Framework**: ASP.NET Core Blazor Server
+- **Frontend**: Blazor components with Razor syntax
+- **State Management**: Blazor state container or service-based state management
+- **UI Library**: Bootstrap or custom CSS (Blazor-compatible)
+- **Backend**: ASP.NET Core with C#
+- **Database**: Entity Framework Core with SQLite or SQL Server
+- **AI Integration**: HTTP clients calling LLM endpoints for statblock parsing and combat narration
 
 ## Coding Standards
 
-- Use camelCase for variable and function names
-- Use PascalCase for React component names and class names
-- Use single quotes for strings in JavaScript/TypeScript
-- Use 2 spaces for indentation
-- Use arrow functions for callbacks
-- Use async/await for asynchronous code
-- Use const for constants and let for variables that will be reassigned
-- Use destructuring for objects and arrays
-- Use template literals for strings that contain variables
-- Utilize ES6+ features whenever possible
+- Use PascalCase for class names, method names, and public properties
+- Use camelCase for private fields (with underscore prefix: `_fieldName`)
+- Use PascalCase for Blazor component file names and component classes
+- Use 4 spaces for indentation (standard C# convention)
+- Use async/await for asynchronous operations
+- Use `var` for local variables when the type is obvious, otherwise use explicit types
+- Follow C# naming conventions and .NET coding standards
+- Use nullable reference types to prevent null reference exceptions
+- Prefer dependency injection for service registration and consumption
+- Use Entity Framework Core for data access with proper DbContext patterns
 
 ## Project Structure
 
@@ -36,11 +37,11 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 
 ### Key Features
 
-1. **Party Management**: Create, edit, delete party members with persistent data
-2. **Combat Setup**: Start combat with party selection, monster addition, and initiative rolling
-3. **Combat Tracking**: Initiative order management, turn progression, HP tracking
+1. **Party Management**: Create, edit, delete party members with persistent data using Entity Framework Core
+2. **Combat Setup**: Start combat with party selection, monster addition, and initiative rolling through Blazor forms
+3. **Combat Tracking**: Initiative order management, turn progression, HP tracking with real-time UI updates via Blazor's state management
 4. **AI-Assisted Features**:
-   - Statblock parsing: Extract monster data from pasted text
+   - Statblock parsing: Extract monster data from pasted text using HTTP calls to LLM APIs
    - Combat narration: Generate immersive descriptions for attack outcomes
 
 ## AI Integration Guidelines
@@ -64,33 +65,36 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 
 ## Testing Requirements
 
-- Write tests for all new features and bug fixes
-- Test AI integration endpoints with mock responses
+- Write unit tests for all new features and bug fixes using xUnit or NUnit
+- Test AI integration endpoints with mock HTTP responses
 - Test combat logic thoroughly (initiative order, turn progression, HP changes)
-- Test data persistence (local storage or database)
-- Use appropriate testing frameworks for the chosen tech stack (Jest for React, Vitest, etc.)
+- Test data persistence with Entity Framework Core (use in-memory database for testing)
+- Use MOQ or NSubstitute for mocking dependencies
+- Aim for high code coverage on business logic and services
 
 ## Security Practices
 
-- Never hardcode API keys or secrets
-- Use environment variables for LLM API endpoints and credentials
-- Secure LLM API usage with tokenized requests
-- Validate all user inputs, especially for statblock parsing
-- Sanitize AI-generated content before displaying
+- Never hardcode API keys or secrets; use User Secrets for development and Azure Key Vault for production
+- Use configuration from appsettings.json and environment variables for LLM API endpoints
+- Secure LLM API usage with proper authentication tokens
+- Validate all user inputs using data annotations and server-side validation
+- Sanitize AI-generated content before rendering in Blazor components
+- Use proper authorization and authentication with ASP.NET Core Identity if user accounts are needed
 
 ## Performance Requirements
 
 - Fast initiative sorting and state updates (<100ms)
-- Responsive design (usable on desktop/tablet)
-- Offline persistence for local sessions
-- Optimize AI calls to minimize latency
+- Responsive design (usable on desktop/tablet) using Bootstrap or custom responsive CSS
+- Use Blazor Server's SignalR connection efficiently to minimize bandwidth
+- Optimize database queries with Entity Framework Core (use proper indexing and eager loading)
+- Minimize LLM API call latency with proper async patterns
 
 ## Documentation
 
-- Document public functions and components
-- Use JSDoc for JavaScript/TypeScript
+- Document public classes, methods, and properties using XML documentation comments (///)
 - Keep functional specifications up to date in `/spec/functionalspecs.md`
 - Document AI prompt templates and expected responses
+- Follow standard C# documentation practices for clarity
 
 ## D&D 5e Context
 
@@ -105,9 +109,9 @@ When working with D&D mechanics:
 ## Future Enhancements
 
 Consider these planned features when designing:
-- Condition tracking (poisoned, stunned, etc.)
-- Automated dice roller integration
-- Map or token view
-- Voice narration output using TTS
-- Integration with D&D Beyond or Foundry VTT
-- Export combat log to text or JSON
+- Condition tracking (poisoned, stunned, etc.) with Blazor state management
+- Automated dice roller integration with real-time updates
+- Map or token view using Blazor components or JavaScript interop
+- Voice narration output using Text-to-Speech APIs
+- Integration with D&D Beyond or Foundry VTT APIs
+- Export combat log to text or JSON format
