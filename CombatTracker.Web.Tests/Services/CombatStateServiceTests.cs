@@ -206,6 +206,51 @@ public class CombatStateServiceTests
     }
 
     [Fact]
+    public void RollInitiativeForMonsters_ShouldSetInitiativeOnlyForMonsters()
+    {
+        // Arrange
+        var service = new CombatStateService();
+        var party = new Party
+        {
+            Id = 1,
+            Name = "Test Party",
+            Characters = new List<Character>
+            {
+                new Character
+                {
+                    Id = 1,
+                    Name = "Fighter",
+                    Class = "Fighter",
+                    Level = 5,
+                    HpMax = 40,
+                    HpCurrent = 40,
+                    AC = 18,
+                    InitiativeModifier = 2
+                }
+            }
+        };
+        service.SelectParty(party);
+        var monster = new Monster
+        {
+            Name = "Goblin",
+            Type = "Humanoid",
+            Hp = 7,
+            AC = 15,
+            InitiativeModifier = 2
+        };
+        service.AddMonster(monster);
+
+        // Act
+        service.RollInitiativeForMonsters();
+
+        // Assert
+        // Characters should remain unchanged (0) while monsters receive initiative
+        Assert.Equal(0, service.Combatants["character-1"].Initiative);
+        Assert.NotEqual(0, service.Combatants["monster-1"].Initiative);
+        Assert.InRange(service.Combatants["monster-1"].Initiative, 3, 22);
+    }
+
+    [Fact]
     public void SetInitiative_ShouldUpdateInitiativeForCombatant()
     {
         // Arrange

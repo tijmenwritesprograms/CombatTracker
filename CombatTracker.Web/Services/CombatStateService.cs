@@ -80,6 +80,18 @@ public class CombatStateService
     }
 
     /// <summary>
+    /// Rolls initiative only for monsters (non-character combatants).
+    /// </summary>
+    public void RollInitiativeForMonsters()
+    {
+        foreach (var combatant in Combatants.Values.Where(c => !c.IsCharacter))
+        {
+            combatant.Initiative = RollD20() + combatant.InitiativeModifier;
+        }
+        NotifyStateChanged();
+    }
+
+    /// <summary>
     /// Sets initiative for a specific combatant.
     /// </summary>
     public void SetInitiative(string combatantKey, int initiative)
