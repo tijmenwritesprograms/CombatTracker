@@ -19,10 +19,25 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
 ### 3. Core Features  
 
 #### 3.1 Party Management  
-- **Create, edit, and delete party members.**  
-  - Fields: Name, Class, Level, HP (current/max), AC, Passive Perception, Initiative Modifier, and Notes.  
-- **Persist party data** locally or via cloud sync (depending on deployment mode).  
-- **Multiple party profiles** (for different campaigns).  
+- **Create, edit, and delete parties.**  
+  - Create multiple party profiles for different campaigns
+  - Edit party names
+  - Delete entire parties including all characters
+- **Create, edit, and delete party members (characters).**  
+  - Fields: Name, Class, Level, HP (current/max), AC, Initiative Modifier, and Notes
+  - Add new characters to any party
+  - Edit character details inline
+  - Remove characters from parties
+- **Party data persistence**
+  - In-memory storage using singleton service (session-based)
+  - Data persists during active session
+  - Future enhancement: Persist to database using Entity Framework Core
+- **Multiple party profiles** supported for different campaigns
+- **Character validation**
+  - Required fields: Name, Class, Level, HP Max, HP Current, AC
+  - Level range: 1-20 (D&D 5e standard)
+  - Initiative modifier range: -5 to +10
+  - AC range: 1-30  
 
 #### 3.2 Combat Setup  
 - **Start New Combat:**  
@@ -102,9 +117,17 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
    - Link to documentation and project information
    - Responsive card layout using Bootstrap grid system
 
-2. **Party Editor:**  
-   - List of party members with edit/delete buttons.  
-   - Add new character form.
+2. **Party Management Screen:**  
+   - "Create New Party" button to add new parties
+   - Card-based layout displaying all parties
+   - Each party card shows:
+     - Party name with edit/delete buttons
+     - List of characters in table format (Name, Class, Level, HP, AC, Initiative Modifier)
+     - Character management buttons (Edit, Delete)
+     - "Add Character" button
+   - Modal form for adding/editing characters with full validation
+   - Party creation/edit form with inline validation
+   - Empty state message when no parties exist
 
 3. **Combat Setup Screen:**  
    - Add/remove combatants.  

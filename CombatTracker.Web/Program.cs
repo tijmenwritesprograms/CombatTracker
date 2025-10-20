@@ -1,5 +1,6 @@
 using CombatTracker.Web;
 using CombatTracker.Web.Components;
+using CombatTracker.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddOutputCache();
+
+// Add party state management service as singleton for in-memory storage
+builder.Services.AddSingleton<PartyStateService>();
 
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
     {
