@@ -87,46 +87,58 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
 
 ### 4. User Interface  
 
-#### 4.1 Screens / Views  
+#### 4.1 Navigation
+The application uses a responsive sidebar navigation with the following main sections:
+- **Home**: Landing page with overview of application features and quick access to main sections
+- **Party Management**: Interface for creating and managing adventuring parties
+- **Combat Setup**: Interface for configuring and starting combat encounters
+
+The navigation is implemented using Blazor Server routing with a collapsible sidebar for mobile/tablet devices.
+
+#### 4.2 Screens / Views  
 1. **Home / Dashboard:**  
-   - Load or create a party.  
-   - Start new combat.  
-   - View recent combats or saved templates.  
+   - Welcome message and application overview
+   - Quick access cards for Party Management and Combat Setup
+   - Link to documentation and project information
+   - Responsive card layout using Bootstrap grid system
 
 2. **Party Editor:**  
    - List of party members with edit/delete buttons.  
-   - Add new character form.  
+   - Add new character form.
 
 3. **Combat Setup Screen:**  
    - Add/remove combatants.  
    - Enter or roll initiatives.  
-   - Launch combat tracking view.  
+   - Launch combat tracking view.
 
 4. **Combat Tracker Screen:**  
    - Initiative order list.  
    - Current turn indicator.  
    - Controls: Next Turn, Previous Turn, Edit HP, Add Monster, Generate Narration.  
    - Round counter.  
-   - Log panel (for turn history, narration, and HP changes).  
+   - Log panel (for turn history, narration, and HP changes).
+
+#### 4.3 Design Principles
+- **Responsive Layout**: Uses Bootstrap CSS framework for mobile-first responsive design
+- **Accessibility**: Semantic HTML elements with proper ARIA labels
+- **Consistent Theme**: D&D themed color scheme with purple/blue gradient sidebar
+- **Clean Navigation**: Clear visual hierarchy with icon-based navigation items
 
 ---
 
 ### 5. System Architecture  
 
 #### 5.1 Frontend  
-- Framework: React (or similar modern SPA framework).  
-- State management: Redux/Zustand or equivalent.  
-- UI Library: TailwindCSS or ShadCN UI.  
+- Framework: ASP.NET Core Blazor Server
+- State management: Blazor component state and service-based state management
+- UI Library: Bootstrap CSS framework
+- Routing: Blazor Server routing with `@page` directives  
 
 #### 5.2 Backend  
-- **Option A (local app):**  
-  - Local storage (IndexedDB / browser storage).  
-  - API calls to LLM endpoint (e.g., OpenAI or local inference).  
-
-- **Option B (cloud-backed):**  
-  - Backend: Node.js + Express or .NET API.  
-  - Database: SQLite or PostgreSQL.  
-  - Authentication (optional): User login to sync parties and combats.  
+- Backend: ASP.NET Core with C#
+- Database: Entity Framework Core with SQLite or SQL Server
+- Data Storage: Local database with Entity Framework Core
+- Authentication: ASP.NET Core Identity (optional for multi-user scenarios)  
 
 #### 5.3 AI Integration  
 - LLM endpoints:  
