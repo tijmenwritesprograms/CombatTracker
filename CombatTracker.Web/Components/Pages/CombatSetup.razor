@@ -45,8 +45,7 @@
                 <h4>Add Monster</h4>
             </div>
             <div class="card-body">
-                <EditForm Model="@newMonster" OnValidSubmit="@HandleAddMonster" FormName="AddMonsterForm">
-                    <AntiforgeryToken />
+                <EditForm Model="@newMonster" OnValidSubmit="@HandleAddMonster">
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" />
 
