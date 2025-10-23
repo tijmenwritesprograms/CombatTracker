@@ -42,6 +42,11 @@ public class CombatStateService
     public List<CombatLogEntry> CombatLog { get; private set; } = new();
 
     /// <summary>
+    /// Mapping of combatant setup keys to combat instance indices.
+    /// </summary>
+    private Dictionary<string, int> _combatantKeyMapping = new();
+
+    /// <summary>
     /// Gets whether combat is currently active.
     /// </summary>
     public bool IsCombatActive => ActiveCombat != null;
@@ -163,6 +168,8 @@ public class CombatStateService
             .ThenBy(c => c.Key)
             .ToList();
 
+        _combatantKeyMapping.Clear();
+        int index = 0;
         foreach (var kvp in sortedCombatants)
         {
             var combatant = kvp.Value;
@@ -173,6 +180,8 @@ public class CombatStateService
                 HpCurrent = combatant.HpCurrent,
                 Status = Status.Alive
             });
+            _combatantKeyMapping[kvp.Key] = index;
+            index++;
         }
 
         // Initialize combat log
@@ -211,13 +220,19 @@ public class CombatStateService
     public CombatantSetupData? GetCurrentCombatantData()
     {
         var instance = GetCurrentCombatantInstance();
-        if (instance == null)
+        if (instance == null || ActiveCombat == null)
         {
             return null;
         }
 
-        // Find the matching setup data
-        return Combatants.Values.FirstOrDefault(c => c.ReferenceId == instance.ReferenceId);
+        // Find the matching setup data using the mapping
+        var key = _combatantKeyMapping.FirstOrDefault(kvp => kvp.Value == ActiveCombat.TurnIndex).Key;
+        if (key != null && Combatants.ContainsKey(key))
+        {
+            return Combatants[key];
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -232,12 +247,15 @@ public class CombatStateService
 
         var result = new List<(CombatantInstance, CombatantSetupData)>();
         
-        foreach (var instance in ActiveCombat.Combatants)
+        // Use the mapping to find the corresponding setup data
+        foreach (var kvp in _combatantKeyMapping)
         {
-            var data = Combatants.Values.FirstOrDefault(c => c.ReferenceId == instance.ReferenceId);
-            if (data != null)
+            var key = kvp.Key;
+            var index = kvp.Value;
+            
+            if (index < ActiveCombat.Combatants.Count && Combatants.ContainsKey(key))
             {
-                result.Add((instance, data));
+                result.Add((ActiveCombat.Combatants[index], Combatants[key]));
             }
         }
 
@@ -374,7 +392,10 @@ public class CombatStateService
         }
 
         var combatant = ActiveCombat.Combatants[combatantIndex];
-        var data = Combatants.Values.FirstOrDefault(c => c.ReferenceId == combatant.ReferenceId);
+        
+        // Find the matching setup data using the mapping
+        var key = _combatantKeyMapping.FirstOrDefault(kvp => kvp.Value == combatantIndex).Key;
+        var data = key != null && Combatants.ContainsKey(key) ? Combatants[key] : null;
         
         if (data == null)
         {
@@ -414,7 +435,10 @@ public class CombatStateService
         }
 
         var combatant = ActiveCombat.Combatants[combatantIndex];
-        var data = Combatants.Values.FirstOrDefault(c => c.ReferenceId == combatant.ReferenceId);
+        
+        // Find the matching setup data using the mapping
+        var key = _combatantKeyMapping.FirstOrDefault(kvp => kvp.Value == combatantIndex).Key;
+        var data = key != null && Combatants.ContainsKey(key) ? Combatants[key] : null;
         
         if (data == null)
         {
