@@ -46,11 +46,40 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
   - Manually enter or edit initiatives for all combatants.  
   - Optionally roll initiative automatically (using modifiers).  
 
+- **Party Selection:**
+  - Dropdown selector displaying all available parties with character count
+  - Warning message if no parties exist with link to Party Management
+  - Selected party's characters automatically added to combatant list
+  - Ability to change selected party during setup
+
 - **Add Monsters:**  
-  - Enter manually via form: Name, HP, AC, Attack Bonus, Damage, Initiative Modifier, etc.  
-  - OR paste a full monster **statblock** into a textarea.  
-  - App calls the **AI Statblock Parser (LLM)** to extract relevant fields (HP, AC, attacks, damage, etc.) and prefill monster data.  
-  - Users can confirm or edit parsed data before adding.  
+  - Enter manually via form: Name, Type, HP, AC, Initiative Modifier
+  - Type field defaults to "Humanoid" for convenience
+  - Full validation on all fields using data annotations
+  - Monsters can be removed individually from combatant list
+  - Characters from selected party cannot be removed (deselect party instead)
+  - OR paste a full monster **statblock** into a textarea (future enhancement)
+  - App calls the **AI Statblock Parser (LLM)** to extract relevant fields (HP, AC, attacks, damage, etc.) and prefill monster data (future enhancement)
+  - Users can confirm or edit parsed data before adding (future enhancement)
+
+- **Initiative Management:**
+  - All combatants displayed in table with name, type, HP, AC, and initiative modifier
+  - "Roll Initiative" button to automatically roll 1d20 + modifier for all combatants
+  - Manual override available via initiative input fields for each combatant
+  - Initiative values can be edited at any time during setup
+  - Initiative modifier displayed with +/- sign for clarity
+
+- **Combat Validation:**
+  - "Start Combat" button disabled until at least one combatant exists
+  - Warning message displayed when trying to start with no combatants
+  - Reset button clears all setup data (selected party and added monsters)
+
+- **Combat Setup Workflow:**
+  1. Select a party from the dropdown (optional)
+  2. Add monsters using the "Add Monster" form
+  3. Review combatant list (party characters + monsters)
+  4. Roll initiative for all or manually set initiative values
+  5. Click "Start Combat" to proceed to combat tracker (future: navigate to tracker)  
 
 #### 3.3 Combat Tracking  
 - **Initiative Order Management:**  
@@ -130,9 +159,26 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
    - Empty state message when no parties exist
 
 3. **Combat Setup Screen:**  
-   - Add/remove combatants.  
-   - Enter or roll initiatives.  
-   - Launch combat tracking view.
+   - Party selection dropdown with all available parties
+   - "Add Monster" form with fields:
+     - Name (required, max 100 characters)
+     - Type (required, max 50 characters, defaults to "Humanoid")
+     - HP (required, min 1)
+     - AC (required, 1-30)
+     - Initiative Modifier (optional, -5 to +10)
+   - Combatants table showing:
+     - Name, Type, HP, AC, Initiative Modifier (+/- prefix)
+     - Initiative input field (editable)
+     - Remove button for monsters (not characters)
+   - Action buttons:
+     - "Roll Initiative" - rolls 1d20 + modifier for all combatants
+     - "Start Combat" - proceeds to combat tracker (disabled if no combatants)
+     - "Reset" - clears all setup data
+   - Validation messages:
+     - Warning when no parties exist
+     - Form validation on monster fields
+     - Warning when trying to start with no combatants
+   - Empty state message when no combatants added
 
 4. **Combat Tracker Screen:**  
    - Initiative order list.  
