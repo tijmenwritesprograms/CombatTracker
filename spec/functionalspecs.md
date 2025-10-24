@@ -29,9 +29,11 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
   - Edit character details inline
   - Remove characters from parties
 - **Party data persistence**
-  - In-memory storage using singleton service (session-based)
-  - Data persists during active session
-  - Future enhancement: Persist to database using Entity Framework Core
+  - Automatic local storage persistence using browser localStorage
+  - Data persists between browser sessions
+  - Auto-save on all party and character changes
+  - Import/export functionality for backup and transfer
+  - Clear all data option for testing/reset
 - **Multiple party profiles** supported for different campaigns
 - **Character validation**
   - Required fields: Name, Class, Level, HP Max, HP Current, AC
@@ -88,6 +90,13 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
   - Current active combatant highlighted with visual indicator (blue row and caret icon)
   - Combatants marked as unconscious/dead shown with strikethrough text
   - Display current round number at top of tracker
+  
+- **Combat State Persistence:**
+  - Active combat state automatically saved to browser localStorage
+  - Combat persists between browser sessions (page refresh maintains state)
+  - Auto-save on all combat actions (turn changes, damage, healing, status changes)
+  - Combat log preserved during session
+  - Import/export combat state for backup
   
 - **Turn Progression:**  
   - "Next Turn" button advances to next combatant in initiative order
@@ -168,6 +177,7 @@ The application uses a responsive sidebar navigation with the following main sec
 - **Party Management**: Interface for creating and managing adventuring parties
 - **Combat Setup**: Interface for configuring and starting combat encounters
 - **Combat Tracker**: Active combat interface with initiative tracking, HP management, and combat log
+- **Data Management**: Interface for importing, exporting, and managing persistent data
 
 The navigation is implemented using Blazor Server routing with a collapsible sidebar for mobile/tablet devices.
 
@@ -254,6 +264,31 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
      - Modal dialogs for damage/heal actions
      - Table automatically scrolls if many combatants
 
+5. **Data Management Screen:**
+   - **Export Data:**
+     - Export all party and combat data to JSON file
+     - Includes automatic filename with timestamp
+     - Downloads directly to user's device
+   
+   - **Import Data:**
+     - Upload JSON file to restore data
+     - Validates file format before importing
+     - Replaces all current data (with warning)
+     - File size limit: 10 MB
+   
+   - **Clear All Data:**
+     - Removes all party and combat data from browser storage
+     - Requires confirmation to prevent accidental deletion
+     - Shows warning to export data first
+   
+   - **Storage Information:**
+     - Displays current data statistics:
+       - Number of parties
+       - Total characters across all parties
+       - Active combat status
+       - Current combat round and combatant count
+     - Shows privacy notice about local storage
+
 
 #### 4.3 Design Principles
 - **Responsive Layout**: Uses Bootstrap CSS framework for mobile-first responsive design
@@ -273,8 +308,9 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
 
 #### 5.2 Backend  
 - Backend: ASP.NET Core with C#
-- Database: Entity Framework Core with SQLite or SQL Server
-- Data Storage: Local database with Entity Framework Core
+- Data Storage: Browser localStorage via JSInterop
+- Persistence: Automatic save/load for party and combat state
+- Import/Export: JSON serialization for data portability
 - Authentication: ASP.NET Core Identity (optional for multi-user scenarios)  
 
 #### 5.3 AI Integration  
@@ -332,10 +368,13 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
 
 ### 7. Non-Functional Requirements  
 - Responsive design (usable on desktop/tablet).  
-- Offline persistence for local sessions.  
+- Persistent local storage for party and combat data.
+- Data persists between browser sessions.
 - Fast initiative sorting and state updates (<100ms).  
 - Secure LLM API usage (tokenized requests).  
-- Export combat log to text or JSON.  
+- Export combat log and data to JSON.
+- Import data from JSON for backup/restore.
+- Graceful error handling for storage quota exceeded.
 
 ---
 

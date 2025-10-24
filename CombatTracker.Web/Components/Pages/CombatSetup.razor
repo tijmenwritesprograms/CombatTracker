@@ -179,11 +179,19 @@
     private Monster newMonster = new() { Type = "Humanoid" };
     private bool canStartCombat => CombatStateService.IsValidForCombat();
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await PartyStateService.InitializeAsync();
+            await CombatStateService.InitializeAsync();
+            RefreshParties();
+            RefreshCombatants();
+        }
+    }
+
     protected override void OnInitialized()
     {
-        parties = PartyStateService.GetAllParties().ToList();
-        combatants = CombatStateService.Combatants;
-        
         PartyStateService.OnChange += RefreshParties;
         CombatStateService.OnChange += RefreshCombatants;
     }
