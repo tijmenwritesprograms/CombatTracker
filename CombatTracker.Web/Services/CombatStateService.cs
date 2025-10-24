@@ -175,6 +175,7 @@ public class CombatStateService
             var combatant = kvp.Value;
             ActiveCombat.Combatants.Add(new CombatantInstance
             {
+                Index = index,
                 ReferenceId = combatant.ReferenceId,
                 Initiative = combatant.Initiative,
                 HpCurrent = combatant.HpCurrent,
@@ -386,7 +387,7 @@ public class CombatStateService
     /// </summary>
     public void ApplyDamage(int combatantIndex, int damage)
     {
-        if (ActiveCombat == null || combatantIndex < 0 || combatantIndex >= ActiveCombat.Combatants.Count)
+        if (ActiveCombat == null || combatantIndex < 0 || combatantIndex > ActiveCombat.Combatants.Count)
         {
             return;
         }

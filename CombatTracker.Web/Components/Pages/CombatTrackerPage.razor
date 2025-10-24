@@ -117,10 +117,10 @@ else
                                             @if (instance.Status == Status.Alive)
                                             {
                                                 <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-outline-danger" @onclick="() => ShowDamageModal(i)">
+                                                    <button class="btn btn-outline-danger" @onclick="() => ShowDamageModal(instance.Index)">
                                                         <span class="bi bi-dash-circle"></span> Damage
                                                     </button>
-                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(i)">
+                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)">
                                                         <span class="bi bi-plus-circle"></span> Heal
                                                     </button>
                                                 </div>
@@ -128,7 +128,7 @@ else
                                             else
                                             {
                                                 <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(i)">
+                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)">
                                                         <span class="bi bi-plus-circle"></span> Heal
                                                     </button>
                                                 </div>
@@ -274,7 +274,7 @@ else
 
     private void RefreshState()
     {
-        StateHasChanged();
+        InvokeAsync(StateHasChanged);
     }
 
     private void NextTurn()
