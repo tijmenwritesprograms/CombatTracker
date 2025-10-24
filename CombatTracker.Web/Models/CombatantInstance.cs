@@ -8,6 +8,12 @@ namespace CombatTracker.Web.Models;
 public class CombatantInstance
 {
     /// <summary>
+    /// An combattant index to keep track of the combattant
+    /// </summary>
+    
+    public int Index { get; set; }
+
+    /// <summary>
     /// Reference to the original character or monster ID.
     /// </summary>
     [Required]

@@ -236,8 +236,8 @@
     {
         if (canStartCombat)
         {
-            // TODO: Navigate to combat tracker when implemented
-            // For now, just show a message
+            CombatStateService.StartCombat();
+            NavigationManager.NavigateTo("/combat-tracker");
         }
     }
 

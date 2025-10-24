@@ -32,6 +32,26 @@ public class CombatStateService
     public Dictionary<string, CombatantSetupData> Combatants { get; private set; } = new();
 
     /// <summary>
+    /// Active combat instance (null if combat not started).
+    /// </summary>
+    public Combat? ActiveCombat { get; private set; }
+
+    /// <summary>
+    /// Combat log entries for the active combat.
+    /// </summary>
+    public List<CombatLogEntry> CombatLog { get; private set; } = new();
+
+    /// <summary>
+    /// Mapping of combatant setup keys to combat instance indices.
+    /// </summary>
+    private Dictionary<string, int> _combatantKeyMapping = new();
+
+    /// <summary>
+    /// Gets whether combat is currently active.
+    /// </summary>
+    public bool IsCombatActive => ActiveCombat != null;
+
+    /// <summary>
     /// Selects a party for the combat.
     /// </summary>
     public void SelectParty(Party? party)
@@ -122,6 +142,342 @@ public class CombatStateService
         NotifyStateChanged();
     }
 
+    /// <summary>
+    /// Starts combat with the current combatants.
+    /// </summary>
+    public void StartCombat()
+    {
+        if (!IsValidForCombat())
+        {
+            return;
+        }
+
+        // Create combat instance
+        ActiveCombat = new Combat
+        {
+            Id = 1,
+            PartyId = SelectedParty?.Id ?? 0,
+            Round = 1,
+            TurnIndex = 0,
+            Combatants = new List<CombatantInstance>()
+        };
+
+        // Convert setup data to combat instances, sorted by initiative (descending)
+        var sortedCombatants = Combatants
+            .OrderByDescending(c => c.Value.Initiative)
+            .ThenBy(c => c.Key)
+            .ToList();
+
+        _combatantKeyMapping.Clear();
+        int index = 0;
+        foreach (var kvp in sortedCombatants)
+        {
+            var combatant = kvp.Value;
+            ActiveCombat.Combatants.Add(new CombatantInstance
+            {
+                Index = index,
+                ReferenceId = combatant.ReferenceId,
+                Initiative = combatant.Initiative,
+                HpCurrent = combatant.HpCurrent,
+                Status = Status.Alive
+            });
+            _combatantKeyMapping[kvp.Key] = index;
+            index++;
+        }
+
+        // Initialize combat log
+        CombatLog.Clear();
+        AddLogEntry("Turn", $"Combat started! Round {ActiveCombat.Round}");
+        
+        // Log first turn
+        if (ActiveCombat.Combatants.Count > 0)
+        {
+            var firstCombatant = GetCurrentCombatantData();
+            if (firstCombatant != null)
+            {
+                AddLogEntry("Turn", $"{firstCombatant.Name}'s turn (Initiative: {GetCurrentCombatantInstance()?.Initiative})");
+            }
+        }
+
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Gets the current active combatant instance.
+    /// </summary>
+    public CombatantInstance? GetCurrentCombatantInstance()
+    {
+        if (ActiveCombat == null || ActiveCombat.Combatants.Count == 0)
+        {
+            return null;
+        }
+
+        return ActiveCombat.Combatants[ActiveCombat.TurnIndex];
+    }
+
+    /// <summary>
+    /// Gets the setup data for the current combatant.
+    /// </summary>
+    public CombatantSetupData? GetCurrentCombatantData()
+    {
+        var instance = GetCurrentCombatantInstance();
+        if (instance == null || ActiveCombat == null)
+        {
+            return null;
+        }
+
+        // Find the matching setup data using the mapping
+        var key = _combatantKeyMapping.FirstOrDefault(kvp => kvp.Value == ActiveCombat.TurnIndex).Key;
+        if (key != null && Combatants.ContainsKey(key))
+        {
+            return Combatants[key];
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets all combatants as a list with setup data, sorted by initiative order.
+    /// </summary>
+    public List<(CombatantInstance Instance, CombatantSetupData Data)> GetCombatantsWithData()
+    {
+        if (ActiveCombat == null)
+        {
+            return new List<(CombatantInstance, CombatantSetupData)>();
+        }
+
+        var result = new List<(CombatantInstance, CombatantSetupData)>();
+        
+        // Use the mapping to find the corresponding setup data
+        foreach (var kvp in _combatantKeyMapping)
+        {
+            var key = kvp.Key;
+            var index = kvp.Value;
+            
+            if (index < ActiveCombat.Combatants.Count && Combatants.ContainsKey(key))
+            {
+                result.Add((ActiveCombat.Combatants[index], Combatants[key]));
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Advances to the next turn in combat.
+    /// </summary>
+    public void NextTurn()
+    {
+        if (ActiveCombat == null)
+        {
+            return;
+        }
+
+        int nextIndex = ActiveCombat.TurnIndex + 1;
+        
+        // Check if we've completed a round
+        if (nextIndex >= ActiveCombat.Combatants.Count)
+        {
+            nextIndex = 0;
+            ActiveCombat.Round++;
+            AddLogEntry("Turn", $"Round {ActiveCombat.Round} begins");
+        }
+
+        // Skip dead/unconscious combatants
+        int attempts = 0;
+        while (attempts < ActiveCombat.Combatants.Count)
+        {
+            var combatant = ActiveCombat.Combatants[nextIndex];
+            if (combatant.Status == Status.Alive)
+            {
+                break;
+            }
+
+            nextIndex++;
+            if (nextIndex >= ActiveCombat.Combatants.Count)
+            {
+                nextIndex = 0;
+                ActiveCombat.Round++;
+                AddLogEntry("Turn", $"Round {ActiveCombat.Round} begins");
+            }
+            attempts++;
+        }
+
+        ActiveCombat.TurnIndex = nextIndex;
+
+        // Log the new turn
+        var currentCombatant = GetCurrentCombatantData();
+        if (currentCombatant != null)
+        {
+            AddLogEntry("Turn", $"{currentCombatant.Name}'s turn");
+        }
+
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Goes back to the previous turn in combat.
+    /// </summary>
+    public void PreviousTurn()
+    {
+        if (ActiveCombat == null)
+        {
+            return;
+        }
+
+        int prevIndex = ActiveCombat.TurnIndex - 1;
+        
+        // Check if we need to go to previous round
+        if (prevIndex < 0)
+        {
+            if (ActiveCombat.Round > 1)
+            {
+                ActiveCombat.Round--;
+                prevIndex = ActiveCombat.Combatants.Count - 1;
+                AddLogEntry("Turn", $"Back to Round {ActiveCombat.Round}");
+            }
+            else
+            {
+                prevIndex = 0;
+            }
+        }
+
+        // Skip dead/unconscious combatants (going backwards)
+        int attempts = 0;
+        while (attempts < ActiveCombat.Combatants.Count)
+        {
+            var combatant = ActiveCombat.Combatants[prevIndex];
+            if (combatant.Status == Status.Alive)
+            {
+                break;
+            }
+
+            prevIndex--;
+            if (prevIndex < 0)
+            {
+                if (ActiveCombat.Round > 1)
+                {
+                    ActiveCombat.Round--;
+                    prevIndex = ActiveCombat.Combatants.Count - 1;
+                    AddLogEntry("Turn", $"Back to Round {ActiveCombat.Round}");
+                }
+                else
+                {
+                    prevIndex = 0;
+                    break;
+                }
+            }
+            attempts++;
+        }
+
+        ActiveCombat.TurnIndex = prevIndex;
+
+        // Log the turn change
+        var currentCombatant = GetCurrentCombatantData();
+        if (currentCombatant != null)
+        {
+            AddLogEntry("Turn", $"Back to {currentCombatant.Name}'s turn");
+        }
+
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Applies damage to a specific combatant.
+    /// </summary>
+    public void ApplyDamage(int combatantIndex, int damage)
+    {
+        if (ActiveCombat == null || combatantIndex < 0 || combatantIndex > ActiveCombat.Combatants.Count)
+        {
+            return;
+        }
+
+        var combatant = ActiveCombat.Combatants[combatantIndex];
+        
+        // Find the matching setup data using the mapping
+        var key = _combatantKeyMapping.FirstOrDefault(kvp => kvp.Value == combatantIndex).Key;
+        var data = key != null && Combatants.ContainsKey(key) ? Combatants[key] : null;
+        
+        if (data == null)
+        {
+            return;
+        }
+
+        int oldHp = combatant.HpCurrent;
+        combatant.HpCurrent = Math.Max(0, combatant.HpCurrent - damage);
+
+        // Update status based on HP
+        var oldStatus = combatant.Status;
+        if (combatant.HpCurrent <= 0)
+        {
+            combatant.Status = Status.Unconscious;
+        }
+
+        // Log the damage
+        AddLogEntry("Damage", $"{data.Name} takes {damage} damage ({oldHp} → {combatant.HpCurrent} HP)");
+        
+        // Log status change
+        if (oldStatus != combatant.Status)
+        {
+            AddLogEntry("Status", $"{data.Name} is now {combatant.Status}!");
+        }
+
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Heals a specific combatant.
+    /// </summary>
+    public void ApplyHealing(int combatantIndex, int healing)
+    {
+        if (ActiveCombat == null || combatantIndex < 0 || combatantIndex >= ActiveCombat.Combatants.Count)
+        {
+            return;
+        }
+
+        var combatant = ActiveCombat.Combatants[combatantIndex];
+        
+        // Find the matching setup data using the mapping
+        var key = _combatantKeyMapping.FirstOrDefault(kvp => kvp.Value == combatantIndex).Key;
+        var data = key != null && Combatants.ContainsKey(key) ? Combatants[key] : null;
+        
+        if (data == null)
+        {
+            return;
+        }
+
+        int oldHp = combatant.HpCurrent;
+        combatant.HpCurrent = Math.Min(data.HpMax, combatant.HpCurrent + healing);
+
+        // Update status if healed from unconscious
+        var oldStatus = combatant.Status;
+        if (combatant.HpCurrent > 0 && combatant.Status == Status.Unconscious)
+        {
+            combatant.Status = Status.Alive;
+        }
+
+        // Log the healing
+        AddLogEntry("Heal", $"{data.Name} heals {healing} HP ({oldHp} → {combatant.HpCurrent} HP)");
+        
+        // Log status change
+        if (oldStatus != combatant.Status)
+        {
+            AddLogEntry("Status", $"{data.Name} is now {combatant.Status}!");
+        }
+
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Ends the current combat and resets to setup mode.
+    /// </summary>
+    public void EndCombat()
+    {
+        ActiveCombat = null;
+        CombatLog.Clear();
+        NotifyStateChanged();
+    }
+
     private void RebuildCombatants()
     {
         Combatants.Clear();
@@ -169,6 +525,23 @@ public class CombatStateService
     private int RollD20()
     {
         return _random.Next(1, 21);
+    }
+
+    private void AddLogEntry(string type, string message)
+    {
+        if (ActiveCombat == null)
+        {
+            return;
+        }
+
+        CombatLog.Add(new CombatLogEntry
+        {
+            Round = ActiveCombat.Round,
+            TurnIndex = ActiveCombat.TurnIndex,
+            Timestamp = DateTime.Now,
+            Type = type,
+            Message = message
+        });
     }
 
     private void NotifyStateChanged() => OnChange?.Invoke();

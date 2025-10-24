@@ -66,14 +66,26 @@ public class NavMenuTests : TestContext
     }
 
     [Fact]
-    public void NavMenu_ShouldRenderThreeNavigationItems()
+    public void NavMenu_ShouldRenderFourNavigationItems()
     {
         // Arrange & Act
         var cut = RenderComponent<NavMenu>();
 
         // Assert
         var navItems = cut.FindAll(".nav-item");
-        Assert.Equal(3, navItems.Count);
+        Assert.Equal(4, navItems.Count);
+    }
+
+    [Fact]
+    public void NavMenu_ShouldRenderCombatTrackerLink()
+    {
+        // Arrange & Act
+        var cut = RenderComponent<NavMenu>();
+
+        // Assert
+        var links = cut.FindAll(".nav-link");
+        var trackerLink = links.FirstOrDefault(l => l.TextContent.Contains("Combat Tracker"));
+        Assert.NotNull(trackerLink);
     }
 
     [Fact]

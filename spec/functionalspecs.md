@@ -83,19 +83,50 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
 
 #### 3.3 Combat Tracking  
 - **Initiative Order Management:**  
-  - Sort all combatants by initiative (descending).  
-  - Allow manual reordering if needed.  
-  - Display current round number and turn tracker.  
-
+  - Combat tracker displays all combatants sorted by initiative (descending order)
+  - Initiative values locked once combat starts
+  - Current active combatant highlighted with visual indicator (blue row and caret icon)
+  - Combatants marked as unconscious/dead shown with strikethrough text
+  - Display current round number at top of tracker
+  
 - **Turn Progression:**  
-  - Highlight active combatant.  
-  - “Next Turn” and “Previous Turn” buttons.  
-  - Automatically skip dead/unconscious combatants if flagged.  
-  - Option to delay/ready actions.  
-
+  - "Next Turn" button advances to next combatant in initiative order
+  - "Previous Turn" button goes back to previous combatant
+  - Round counter automatically increments when all combatants have acted
+  - Automatically skips unconscious/dead combatants during turn progression
+  - Combat log tracks every turn change with combatant name and round number
+  
 - **Hit Point Tracking:**  
-  - Increment/decrement HP manually or via quick actions (“Take X damage,” “Heal X HP”).  
-  - Automatically mark combatant as unconscious/dead when HP ≤ 0.  
+  - Each combatant displays current HP / max HP
+  - "Bloodied" badge shown when HP below 50% of max
+  - "Damage" button opens modal with quick damage amounts (5/10/15/20) or custom input
+  - "Heal" button opens modal with quick healing amounts (5/10/15/20) or custom input
+  - HP changes immediately reflected in the combat tracker
+  - HP cannot go below 0 or above max HP
+  - Automatically marks combatant as "Unconscious" when HP reaches 0
+  - Automatically marks combatant as "Alive" when healed from unconscious state
+  - All HP changes logged to combat log with before/after values
+  
+- **Status Management:**
+  - Three status states: Alive (green badge), Unconscious (red badge), Dead (dark badge)
+  - Status automatically updated based on HP changes
+  - Status changes logged to combat log
+  - Unconscious/dead combatants automatically skipped during turn progression
+  - Unconscious combatants can be healed to revive them
+  
+- **Combat Log:**
+  - Displays all actions and events in reverse chronological order (newest first)
+  - Log entries include: Turn changes, Damage dealt, Healing applied, Status changes
+  - Each entry shows round number, timestamp, type badge, and descriptive message
+  - Color-coded badges: Turn (blue), Damage (red), Heal (green), Status (yellow)
+  - Log automatically scrolls to show recent entries
+  - Log cleared when combat ends
+  
+- **Combat Controls:**
+  - "End Combat" button returns to combat setup screen
+  - Combat state maintained until explicitly ended
+  - Navigation to other pages while combat active preserves combat state
+  - Warning message shown on combat tracker if no active combat
 
 #### 3.4 AI-Assisted Features  
 
@@ -136,6 +167,7 @@ The application uses a responsive sidebar navigation with the following main sec
 - **Home**: Landing page with overview of application features and quick access to main sections
 - **Party Management**: Interface for creating and managing adventuring parties
 - **Combat Setup**: Interface for configuring and starting combat encounters
+- **Combat Tracker**: Active combat interface with initiative tracking, HP management, and combat log
 
 The navigation is implemented using Blazor Server routing with a collapsible sidebar for mobile/tablet devices.
 
@@ -180,12 +212,48 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
      - Warning when trying to start with no combatants
    - Empty state message when no combatants added
 
-4. **Combat Tracker Screen:**  
-   - Initiative order list.  
-   - Current turn indicator.  
-   - Controls: Next Turn, Previous Turn, Edit HP, Add Monster, Generate Narration.  
-   - Round counter.  
-   - Log panel (for turn history, narration, and HP changes).
+4. **Combat Tracker Screen:**
+   - **Top Controls:**
+     - Round number display (e.g., "Round 3")
+     - "Previous Turn" button (left arrow)
+     - "Next Turn" button (right arrow)
+     - "End Combat" button (returns to combat setup)
+   
+   - **Initiative Order Table:**
+     - Displays all combatants sorted by initiative (descending)
+     - Current active combatant highlighted with blue background
+     - Active combatant marked with caret icon
+     - Columns: Initiative, Name, Type, HP, AC, Status, Actions
+     - HP displayed as "current / max" with visual badges:
+       - "0 HP" badge when HP reaches 0
+       - "Bloodied" badge when HP below 50% of max
+     - Status badges: Alive (green), Unconscious (red), Dead (dark)
+     - Unconscious/dead combatants shown with strikethrough text
+   
+   - **HP Management:**
+     - "Damage" button opens modal for each alive combatant
+     - "Heal" button available for all combatants
+     - Modals provide quick action buttons (5/10/15/20) and custom input
+     - HP changes immediately update in table
+     - Status automatically updated based on HP changes
+   
+   - **Combat Log Panel:**
+     - Displays all combat events in reverse chronological order
+     - Entry types: Turn (blue), Damage (red), Heal (green), Status (yellow)
+     - Each entry shows: Round number, Timestamp, Type badge, Message
+     - Automatically scrolls to show recent activity
+     - Example entries:
+       - "Fighter's turn (Initiative: 15)"
+       - "Goblin takes 10 damage (7 → 0 HP)"
+       - "Wizard is now Unconscious!"
+       - "Round 2 begins"
+   
+   - **Responsive Design:**
+     - Two-column layout: Initiative table (left), Combat log (right)
+     - Adapts to smaller screens with stacked layout
+     - Modal dialogs for damage/heal actions
+     - Table automatically scrolls if many combatants
+
 
 #### 4.3 Design Principles
 - **Responsive Layout**: Uses Bootstrap CSS framework for mobile-first responsive design
