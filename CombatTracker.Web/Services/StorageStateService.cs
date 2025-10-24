@@ -8,7 +8,7 @@ namespace CombatTracker.Web.Services;
 /// </summary>
 public class StorageStateService
 {
-    private readonly LocalStorageService _localStorage;
+    private readonly ILocalStorageService _localStorage;
     private readonly ILogger<StorageStateService> _logger;
 
     private const string PartiesKey = "combattracker_parties";
@@ -16,7 +16,7 @@ public class StorageStateService
     private const string StorageVersionKey = "combattracker_storage_version";
     private const int CurrentStorageVersion = 1;
 
-    public StorageStateService(LocalStorageService localStorage, ILogger<StorageStateService> logger)
+    public StorageStateService(ILocalStorageService localStorage, ILogger<StorageStateService> logger)
     {
         _localStorage = localStorage;
         _logger = logger;
@@ -142,7 +142,7 @@ public class StorageStateService
     /// <summary>
     /// Exports all data as JSON string.
     /// </summary>
-    public async Task<string?> ExportAllDataAsync(IEnumerable<Party> parties, int nextPartyId, int nextCharacterId, CombatStorageData? combatData)
+    public Task<string?> ExportAllDataAsync(IEnumerable<Party> parties, int nextPartyId, int nextCharacterId, CombatStorageData? combatData)
     {
         try
         {
@@ -161,19 +161,19 @@ public class StorageStateService
                 Version = CurrentStorageVersion
             };
 
-            return JsonSerializer.Serialize(exportData, new JsonSerializerOptions { WriteIndented = true });
+            return Task.FromResult<string?>(JsonSerializer.Serialize(exportData, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting data");
-            return null;
+            return Task.FromResult<string?>(null);
         }
     }
 
     /// <summary>
     /// Imports data from JSON string.
     /// </summary>
-    public async Task<(PartyStorageData?, CombatStorageData?)> ImportDataAsync(string json)
+    public Task<(PartyStorageData?, CombatStorageData?)> ImportDataAsync(string json)
     {
         try
         {
@@ -181,15 +181,15 @@ public class StorageStateService
             if (exportData == null)
             {
                 _logger.LogWarning("Failed to deserialize import data");
-                return (null, null);
+                return Task.FromResult<(PartyStorageData?, CombatStorageData?)>((null, null));
             }
 
-            return (exportData.PartyData, exportData.CombatData);
+            return Task.FromResult((exportData.PartyData, exportData.CombatData));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error importing data");
-            return (null, null);
+            return Task.FromResult<(PartyStorageData?, CombatStorageData?)>((null, null));
         }
     }
 

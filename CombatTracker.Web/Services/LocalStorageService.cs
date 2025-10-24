@@ -6,7 +6,7 @@ namespace CombatTracker.Web.Services;
 /// <summary>
 /// Service for interacting with browser localStorage via JSInterop.
 /// </summary>
-public class LocalStorageService
+public class LocalStorageService : ILocalStorageService
 {
     private readonly IJSRuntime _jsRuntime;
     private readonly ILogger<LocalStorageService> _logger;

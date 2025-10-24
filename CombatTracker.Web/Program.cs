@@ -20,7 +20,7 @@ builder.Services.AddSingleton<PartyStateService>();
 builder.Services.AddSingleton<CombatStateService>();
 
 // Add local storage service for browser localStorage access
-builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 
 // Add storage state service for coordinating persistence
 builder.Services.AddScoped<StorageStateService>();
