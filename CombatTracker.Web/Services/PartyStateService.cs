@@ -17,12 +17,25 @@ public class PartyStateService
     public event Action? OnChange;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PartyStateService"/> class and seeds
-    /// a sample party with four adventurers for testing purposes.
+    /// Initializes a new instance of the <see cref="PartyStateService"/> class.
+    /// Seeding is performed via SeedSampleParty method on demand.
     /// </summary>
     public PartyStateService()
     {
-        // Seed a sample party of 4 adventurers for testing
+        // Intentionally empty. Use SeedSampleParty() to add test data on demand.
+    }
+
+    /// <summary>
+    /// Seeds a sample party of 4 adventurers for testing purposes.
+    /// </summary>
+    public void SeedSampleParty()
+    {
+        // Avoid duplicating the same seeded party multiple times by checking existing names.
+        if (_parties.Any(p => p.Name == "The Silver Blades"))
+        {
+            return;
+        }
+
         var seededParty = CreateParty("The Silver Blades");
 
         AddCharacter(seededParty.Id, new Character
@@ -72,6 +85,9 @@ public class PartyStateService
             InitiativeModifier = 0,
             Notes = "Dwarf cleric, healer and support"
         });
+
+        // Final notification (CreateParty and AddCharacter already trigger notifications, but ensure observers are updated)
+        NotifyStateChanged();
     }
 
     /// <summary>

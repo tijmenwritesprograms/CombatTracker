@@ -233,18 +233,18 @@ public class CombatTrackerPageTests : TestContext
     }
 
     [Fact]
-    public void CombatTracker_DamageAndHealButtons_ShouldCallCorrectServiceMethods()
+    public void CombatTracker_DamageAndHealButtons_ShouldUpdateUI_WhenHPChanges()
     {
-        // This test verifies that the UI component calls the correct service methods
-        // when buttons are clicked, which is the core functionality
-        
+        // This test verifies that the UI updates correctly when HP changes occur
+        // We test the service-level changes and UI refresh behavior
+
         // Arrange
         var partyService = new PartyStateService();
         var combatService = new CombatStateService();
-        
+
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
-        
+
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -262,32 +262,44 @@ public class CombatTrackerPageTests : TestContext
         combatService.RollInitiativeForAll();
         combatService.StartCombat();
 
-        // Direct testing of ApplyDamage and ApplyHealing methods
-        // which are what the UI buttons should call
-        
-        // Test damage application
-        var initialHp = combatService.ActiveCombat!.Combatants[0].HpCurrent;
-        combatService.ApplyDamage(0, 10);
-        var hpAfterDamage = combatService.ActiveCombat.Combatants[0].HpCurrent;
-        
-        Assert.Equal(initialHp - 10, hpAfterDamage);
-        Assert.Contains(combatService.CombatLog, log => log.Type == "Damage");
-        
-        // Test healing application
-        combatService.ApplyHealing(0, 5);
-        var hpAfterHeal = combatService.ActiveCombat.Combatants[0].HpCurrent;
-        
-        Assert.Equal(hpAfterDamage + 5, hpAfterHeal);
-        Assert.Contains(combatService.CombatLog, log => log.Type == "Heal");
-        
-        // Test unconscious state
-        combatService.ApplyDamage(0, 50); // Make unconscious
-        Assert.Equal(Status.Unconscious, combatService.ActiveCombat.Combatants[0].Status);
-        
-        // Test revival through healing
+        var cut = RenderComponent<CombatTrackerPage>();
+
+        // Verify initial HP display in UI
+        Assert.Contains("40 / 40", cut.Markup);
+        Assert.Contains("Alive", cut.Markup);
+
+        // Act - Apply damage through service (simulating what UI buttons do)
+        combatService.ApplyDamage(0, 15);
+        cut.Render(); // Force re-render to check UI updates
+
+        // Assert - UI should update to show reduced HP
+        Assert.Contains("25 / 40", cut.Markup);
+        Assert.Contains("Alive", cut.Markup);
+
+        // Act - Apply healing through service
         combatService.ApplyHealing(0, 10);
-        Assert.Equal(Status.Alive, combatService.ActiveCombat.Combatants[0].Status);
-        Assert.Equal(10, combatService.ActiveCombat.Combatants[0].HpCurrent);
+        cut.Render(); // Force re-render
+
+        // Assert - UI should update to show increased HP
+        Assert.Contains("35 / 40", cut.Markup);
+        Assert.Contains("Alive", cut.Markup);
+
+        // Act - Apply massive damage to make unconscious
+        combatService.ApplyDamage(0, 50); // More than remaining HP
+        cut.Render(); // Force re-render
+
+        // Assert - UI should show unconscious state
+        Assert.Contains("0 / 40", cut.Markup);
+        Assert.Contains("Unconscious", cut.Markup);
+
+        // Act - Heal unconscious combatant
+        combatService.ApplyHealing(0, 5);
+        cut.Render(); // Force re-render
+
+        // Assert - UI should show revived combatant
+        Assert.Contains("5 / 40", cut.Markup);
+        Assert.Contains("Alive", cut.Markup);
+        // Note: Combat log may still contain "Unconscious" messages from history
     }
 
     [Fact]

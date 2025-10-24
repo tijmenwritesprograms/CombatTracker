@@ -13,6 +13,9 @@
     <button class="btn btn-primary" @onclick="ShowCreatePartyForm">
         <span class="bi bi-plus-circle me-2"></span>Create New Party
     </button>
+    <button class="btn btn-outline-secondary ms-2" @onclick="SeedTestParty">
+        Seed Test Party
+    </button>
 </div>
 
 @if (_showPartyForm)
@@ -224,6 +227,12 @@ else
         _partyForm = new Party();
         _editingParty = null;
         _showPartyForm = true;
+    }
+
+    private void SeedTestParty()
+    {
+        PartyState.SeedSampleParty();
+        LoadParties();
     }
 
     private void EditParty(Party party)
