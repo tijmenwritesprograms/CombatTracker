@@ -14,10 +14,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddOutputCache();
 
 // Add party state management service as singleton for in-memory storage
-builder.Services.AddSingleton<PartyStateService>();
+builder.Services.AddScoped<PartyStateService>();
 
 // Add combat state management service as singleton for in-memory storage
-builder.Services.AddSingleton<CombatStateService>();
+builder.Services.AddScoped<CombatStateService>();
 
 // Add local storage service for browser localStorage access
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();

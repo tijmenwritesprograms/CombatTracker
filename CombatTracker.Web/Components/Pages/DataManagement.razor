@@ -5,6 +5,8 @@
 @inject CombatStateService CombatService
 @inject StorageStateService StorageService
 @inject IJSRuntime JSRuntime
+@implements IDisposable
+@rendermode InteractiveServer
 
 <PageTitle>Data Management - Combat Tracker</PageTitle>
 
@@ -149,6 +151,18 @@
             await CombatService.InitializeAsync();
             StateHasChanged();
         }
+    }
+
+    protected override void OnInitialized()
+    {
+        PartyService.OnChange += StateHasChanged;
+        CombatService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        PartyService.OnChange -= StateHasChanged;
+        CombatService.OnChange -= StateHasChanged;
     }
 
     private async Task ExportData()
