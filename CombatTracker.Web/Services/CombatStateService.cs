@@ -3,13 +3,16 @@ using CombatTracker.Web.Models;
 namespace CombatTracker.Web.Services;
 
 /// <summary>
-/// In-memory state management service for combat encounters.
+/// In-memory state management service for combat encounters with local storage persistence.
 /// </summary>
 public class CombatStateService
 {
     private readonly List<Monster> _monsters = new();
     private int _nextMonsterId = 1;
     private readonly Random _random = new();
+    private readonly StorageStateService? _storageService;
+    private readonly ILogger<CombatStateService> _logger;
+    private bool _isInitialized = false;
 
     /// <summary>
     /// Event raised when combat state changes.
@@ -51,6 +54,31 @@ public class CombatStateService
     /// </summary>
     public bool IsCombatActive => ActiveCombat != null;
 
+    public CombatStateService(ILogger<CombatStateService> logger, StorageStateService? storageService = null)
+    {
+        _logger = logger;
+        _storageService = storageService;
+    }
+
+    /// <summary>
+    /// Initializes the service and loads data from storage if available.
+    /// Must be called from a component after render.
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        _isInitialized = true;
+
+        if (_storageService != null)
+        {
+            await LoadFromStorageAsync();
+        }
+    }
+
     /// <summary>
     /// Selects a party for the combat.
     /// </summary>
@@ -58,6 +86,7 @@ public class CombatStateService
     {
         SelectedParty = party;
         RebuildCombatants();
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -69,6 +98,7 @@ public class CombatStateService
         monster.Id = _nextMonsterId++;
         _monsters.Add(monster);
         RebuildCombatants();
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
         return monster;
     }
@@ -83,6 +113,7 @@ public class CombatStateService
         {
             _monsters.Remove(monster);
             RebuildCombatants();
+            _ = SaveToStorageAsync(); // Fire and forget
             NotifyStateChanged();
         }
     }
@@ -96,6 +127,7 @@ public class CombatStateService
         {
             combatant.Initiative = RollD20() + combatant.InitiativeModifier;
         }
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -108,6 +140,7 @@ public class CombatStateService
         {
             combatant.Initiative = RollD20() + combatant.InitiativeModifier;
         }
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -119,6 +152,7 @@ public class CombatStateService
         if (Combatants.ContainsKey(combatantKey))
         {
             Combatants[combatantKey].Initiative = initiative;
+            _ = SaveToStorageAsync(); // Fire and forget
             NotifyStateChanged();
         }
     }
@@ -139,6 +173,7 @@ public class CombatStateService
         SelectedParty = null;
         _monsters.Clear();
         Combatants.Clear();
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -199,6 +234,7 @@ public class CombatStateService
             }
         }
 
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -312,6 +348,7 @@ public class CombatStateService
             AddLogEntry("Turn", $"{currentCombatant.Name}'s turn");
         }
 
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -379,6 +416,7 @@ public class CombatStateService
             AddLogEntry("Turn", $"Back to {currentCombatant.Name}'s turn");
         }
 
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -422,6 +460,7 @@ public class CombatStateService
             AddLogEntry("Status", $"{data.Name} is now {combatant.Status}!");
         }
 
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -465,6 +504,7 @@ public class CombatStateService
             AddLogEntry("Status", $"{data.Name} is now {combatant.Status}!");
         }
 
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -475,6 +515,7 @@ public class CombatStateService
     {
         ActiveCombat = null;
         CombatLog.Clear();
+        _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
     }
 
@@ -542,6 +583,129 @@ public class CombatStateService
             Type = type,
             Message = message
         });
+    }
+
+    /// <summary>
+    /// Loads combat state from storage.
+    /// </summary>
+    private async Task LoadFromStorageAsync()
+    {
+        if (_storageService == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var data = await _storageService.LoadCombatStateAsync();
+            if (data != null)
+            {
+                _monsters.Clear();
+                _monsters.AddRange(data.Monsters);
+                _nextMonsterId = data.NextMonsterId;
+                SelectedParty = data.SelectedParty;
+                Combatants = data.Combatants;
+                ActiveCombat = data.ActiveCombat;
+                CombatLog = data.CombatLog;
+                _combatantKeyMapping = data.CombatantKeyMapping;
+                _logger.LogInformation("Loaded combat state from storage");
+                NotifyStateChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading combat state from storage");
+        }
+    }
+
+    /// <summary>
+    /// Saves combat state to storage.
+    /// </summary>
+    private async Task SaveToStorageAsync()
+    {
+        if (_storageService == null)
+        {
+            return;
+        }
+
+        try
+        {
+            CombatStorageData? data = null;
+            
+            // Only save if there's actual combat data
+            if (ActiveCombat != null || _monsters.Count > 0 || SelectedParty != null)
+            {
+                data = new CombatStorageData
+                {
+                    ActiveCombat = ActiveCombat,
+                    CombatLog = CombatLog,
+                    Combatants = Combatants,
+                    Monsters = _monsters.ToList(),
+                    SelectedParty = SelectedParty,
+                    NextMonsterId = _nextMonsterId,
+                    CombatantKeyMapping = _combatantKeyMapping
+                };
+            }
+
+            await _storageService.SaveCombatStateAsync(data);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving combat state to storage");
+        }
+    }
+
+    /// <summary>
+    /// Gets internal state for export/import.
+    /// </summary>
+    public CombatStorageData? GetInternalState()
+    {
+        if (ActiveCombat == null && _monsters.Count == 0 && SelectedParty == null)
+        {
+            return null;
+        }
+
+        return new CombatStorageData
+        {
+            ActiveCombat = ActiveCombat,
+            CombatLog = CombatLog,
+            Combatants = Combatants,
+            Monsters = _monsters.ToList(),
+            SelectedParty = SelectedParty,
+            NextMonsterId = _nextMonsterId,
+            CombatantKeyMapping = _combatantKeyMapping
+        };
+    }
+
+    /// <summary>
+    /// Restores internal state from import.
+    /// </summary>
+    public async Task RestoreInternalStateAsync(CombatStorageData? data)
+    {
+        if (data == null)
+        {
+            _monsters.Clear();
+            _nextMonsterId = 1;
+            SelectedParty = null;
+            Combatants = new Dictionary<string, CombatantSetupData>();
+            ActiveCombat = null;
+            CombatLog = new List<CombatLogEntry>();
+            _combatantKeyMapping = new Dictionary<string, int>();
+        }
+        else
+        {
+            _monsters.Clear();
+            _monsters.AddRange(data.Monsters);
+            _nextMonsterId = data.NextMonsterId;
+            SelectedParty = data.SelectedParty;
+            Combatants = data.Combatants;
+            ActiveCombat = data.ActiveCombat;
+            CombatLog = data.CombatLog;
+            _combatantKeyMapping = data.CombatantKeyMapping;
+        }
+
+        await SaveToStorageAsync();
+        NotifyStateChanged();
     }
 
     private void NotifyStateChanged() => OnChange?.Invoke();

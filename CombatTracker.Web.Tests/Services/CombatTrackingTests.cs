@@ -13,7 +13,7 @@ public class CombatTrackingTests
     public void StartCombat_ShouldCreateActiveCombat()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.AddMonster(CreateTestMonster("Goblin"));
@@ -33,7 +33,7 @@ public class CombatTrackingTests
     public void StartCombat_ShouldSortCombatantsByInitiativeDescending()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.AddMonster(CreateTestMonster("Goblin"));
@@ -56,7 +56,7 @@ public class CombatTrackingTests
     public void StartCombat_ShouldInitializeCombatLog()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -73,7 +73,7 @@ public class CombatTrackingTests
     public void GetCurrentCombatantInstance_ShouldReturnFirstCombatant()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -91,7 +91,7 @@ public class CombatTrackingTests
     public void GetCurrentCombatantData_ShouldReturnMatchingSetupData()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -109,7 +109,7 @@ public class CombatTrackingTests
     public void NextTurn_ShouldAdvanceTurnIndex()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.AddMonster(CreateTestMonster("Goblin"));
@@ -127,7 +127,7 @@ public class CombatTrackingTests
     public void NextTurn_ShouldIncrementRoundAfterLastCombatant()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -145,7 +145,7 @@ public class CombatTrackingTests
     public void NextTurn_ShouldSkipUnconsciousCombatants()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.AddMonster(CreateTestMonster("Goblin"));
@@ -168,7 +168,7 @@ public class CombatTrackingTests
     public void PreviousTurn_ShouldDecrementTurnIndex()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.AddMonster(CreateTestMonster("Goblin"));
@@ -187,7 +187,7 @@ public class CombatTrackingTests
     public void PreviousTurn_ShouldDecrementRoundWhenAtStart()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -205,7 +205,7 @@ public class CombatTrackingTests
     public void ApplyDamage_ShouldReduceHP()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -223,7 +223,7 @@ public class CombatTrackingTests
     public void ApplyDamage_ShouldNotReduceHPBelowZero()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -240,7 +240,7 @@ public class CombatTrackingTests
     public void ApplyDamage_ShouldMarkAsUnconsciousWhenHPReachesZero()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -257,7 +257,7 @@ public class CombatTrackingTests
     public void ApplyDamage_ShouldAddDamageLogEntry()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -276,7 +276,7 @@ public class CombatTrackingTests
     public void ApplyDamage_ShouldAddStatusLogEntryWhenBecomeUnconscious()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -293,7 +293,7 @@ public class CombatTrackingTests
     public void ApplyHealing_ShouldIncreaseHP()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -312,7 +312,7 @@ public class CombatTrackingTests
     public void ApplyHealing_ShouldNotExceedMaxHP()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -330,7 +330,7 @@ public class CombatTrackingTests
     public void ApplyHealing_ShouldReviveUnconsciousCombatant()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -349,7 +349,7 @@ public class CombatTrackingTests
     public void ApplyHealing_ShouldAddHealLogEntry()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -369,7 +369,7 @@ public class CombatTrackingTests
     public void ApplyHealing_ShouldAddStatusLogEntryWhenRevived()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -387,7 +387,7 @@ public class CombatTrackingTests
     public void GetCombatantsWithData_ShouldReturnAllCombatantsWithSetupData()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.AddMonster(CreateTestMonster("Goblin"));
@@ -409,7 +409,7 @@ public class CombatTrackingTests
     public void EndCombat_ShouldClearActiveCombat()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -428,7 +428,7 @@ public class CombatTrackingTests
     public void CombatLog_ShouldTrackRoundAndTurnIndex()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();
@@ -446,7 +446,7 @@ public class CombatTrackingTests
     public void CombatLog_ShouldIncludeTimestamp()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = CreateTestParty();
         service.SelectParty(party);
         service.RollInitiativeForAll();

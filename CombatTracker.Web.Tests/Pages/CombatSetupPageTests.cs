@@ -46,7 +46,7 @@ public class CombatSetupPageTests : TestContext
     public void CombatSetup_ShouldDisplayPartySelector_WhenPartiesExist()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         partyService.CreateParty("Test Party");
         Services.AddSingleton(partyService);
         Services.AddSingleton<CombatStateService>();
@@ -82,7 +82,7 @@ public class CombatSetupPageTests : TestContext
     public void CombatSetup_ShouldDisplayCombatantsTable_WhenCombatantsExist()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -95,7 +95,7 @@ public class CombatSetupPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
 
         Services.AddSingleton(partyService);
@@ -143,7 +143,7 @@ public class CombatSetupPageTests : TestContext
     public void CombatSetup_ShouldShowActionButtons_WhenCombatantsExist()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -156,7 +156,7 @@ public class CombatSetupPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
 
         Services.AddSingleton(partyService);
@@ -175,7 +175,7 @@ public class CombatSetupPageTests : TestContext
     public void CombatSetup_ShouldContainRollOptions_MonstersAndAll()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -188,7 +188,7 @@ public class CombatSetupPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
 
         Services.AddSingleton(partyService);
@@ -206,7 +206,7 @@ public class CombatSetupPageTests : TestContext
     public void CombatSetup_ClickMonsters_ShouldRollOnlyMonsters()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -219,7 +219,7 @@ public class CombatSetupPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
         combatService.AddMonster(new Monster { Name = "Goblin", Type = "Humanoid", Hp = 7, AC = 15, InitiativeModifier = 2 });
 
@@ -246,7 +246,7 @@ public class CombatSetupPageTests : TestContext
     public void CombatSetup_ClickAll_ShouldRollAllCombatants()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -259,7 +259,7 @@ public class CombatSetupPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
         combatService.AddMonster(new Monster { Name = "Goblin", Type = "Humanoid", Hp = 7, AC = 15, InitiativeModifier = 2 });
 

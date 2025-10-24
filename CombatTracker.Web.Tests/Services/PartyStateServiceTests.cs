@@ -13,7 +13,7 @@ public class PartyStateServiceTests
     public void CreateParty_ShouldAddPartyToList()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
 
         // Act
         var party = service.CreateParty("Test Party");
@@ -29,7 +29,7 @@ public class PartyStateServiceTests
     public void CreateParty_ShouldAssignIncrementingIds()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
 
         // Act
         var party1 = service.CreateParty("Party 1");
@@ -44,7 +44,7 @@ public class PartyStateServiceTests
     public void GetAllParties_ShouldReturnEmptyList_WhenNoPartiesExist()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
 
         // Act
         var parties = service.GetAllParties();
@@ -57,7 +57,7 @@ public class PartyStateServiceTests
     public void GetPartyById_ShouldReturnParty_WhenPartyExists()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
 
         // Act
@@ -72,7 +72,7 @@ public class PartyStateServiceTests
     public void GetPartyById_ShouldReturnNull_WhenPartyDoesNotExist()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
 
         // Act
         var result = service.GetPartyById(999);
@@ -85,7 +85,7 @@ public class PartyStateServiceTests
     public void UpdateParty_ShouldUpdatePartyName()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Original Name");
 
         // Act
@@ -101,7 +101,7 @@ public class PartyStateServiceTests
     public void DeleteParty_ShouldRemovePartyFromList()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
 
         // Act
@@ -115,7 +115,7 @@ public class PartyStateServiceTests
     public void AddCharacter_ShouldAddCharacterToParty()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
         var character = new Character
         {
@@ -142,7 +142,7 @@ public class PartyStateServiceTests
     public void AddCharacter_ShouldThrowException_WhenPartyDoesNotExist()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var character = new Character { Name = "Test" };
 
         // Act & Assert
@@ -153,7 +153,7 @@ public class PartyStateServiceTests
     public void AddCharacter_ShouldAssignIncrementingIds()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
         var char1 = new Character { Name = "Character 1", Class = "Fighter", Level = 1, HpMax = 10, HpCurrent = 10, AC = 15 };
         var char2 = new Character { Name = "Character 2", Class = "Wizard", Level = 1, HpMax = 8, HpCurrent = 8, AC = 12 };
@@ -171,7 +171,7 @@ public class PartyStateServiceTests
     public void UpdateCharacter_ShouldUpdateCharacterProperties()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
         var character = new Character
         {
@@ -200,7 +200,7 @@ public class PartyStateServiceTests
     public void UpdateCharacter_ShouldThrowException_WhenPartyDoesNotExist()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var character = new Character { Id = 1, Name = "Test" };
 
         // Act & Assert
@@ -211,7 +211,7 @@ public class PartyStateServiceTests
     public void DeleteCharacter_ShouldRemoveCharacterFromParty()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
         var character = new Character
         {
@@ -236,7 +236,7 @@ public class PartyStateServiceTests
     public void DeleteCharacter_ShouldThrowException_WhenPartyDoesNotExist()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => service.DeleteCharacter(999, 1));
@@ -246,7 +246,7 @@ public class PartyStateServiceTests
     public void OnChange_ShouldBeInvoked_WhenPartyIsCreated()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var eventInvoked = false;
         service.OnChange += () => eventInvoked = true;
 
@@ -261,7 +261,7 @@ public class PartyStateServiceTests
     public void OnChange_ShouldBeInvoked_WhenPartyIsDeleted()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
         var eventInvoked = false;
         service.OnChange += () => eventInvoked = true;
@@ -277,7 +277,7 @@ public class PartyStateServiceTests
     public void OnChange_ShouldBeInvoked_WhenCharacterIsAdded()
     {
         // Arrange
-        var service = new PartyStateService();
+        var service = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = service.CreateParty("Test Party");
         var eventInvoked = false;
         service.OnChange += () => eventInvoked = true;

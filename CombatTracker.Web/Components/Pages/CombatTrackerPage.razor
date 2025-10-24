@@ -261,6 +261,15 @@ else
     private int damageAmount = 5;
     private int healAmount = 5;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CombatStateService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
     protected override void OnInitialized()
     {
         CombatStateService.OnChange += RefreshState;

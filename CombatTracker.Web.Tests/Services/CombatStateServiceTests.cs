@@ -13,7 +13,7 @@ public class CombatStateServiceTests
     public void SelectParty_ShouldSetSelectedParty()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party { Id = 1, Name = "Test Party" };
 
         // Act
@@ -28,7 +28,7 @@ public class CombatStateServiceTests
     public void SelectParty_ShouldAddCharactersToCombatants()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party
         {
             Id = 1,
@@ -75,7 +75,7 @@ public class CombatStateServiceTests
     public void AddMonster_ShouldAddMonsterToList()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var monster = new Monster
         {
             Name = "Goblin",
@@ -99,7 +99,7 @@ public class CombatStateServiceTests
     public void AddMonster_ShouldAssignIncrementingIds()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var monster1 = new Monster { Name = "Goblin 1", Type = "Humanoid", Hp = 7, AC = 15 };
         var monster2 = new Monster { Name = "Goblin 2", Type = "Humanoid", Hp = 7, AC = 15 };
 
@@ -116,7 +116,7 @@ public class CombatStateServiceTests
     public void AddMonster_ShouldAddMonsterToCombatants()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var monster = new Monster
         {
             Name = "Goblin",
@@ -141,7 +141,7 @@ public class CombatStateServiceTests
     public void RemoveMonster_ShouldRemoveMonsterFromList()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var monster = new Monster
         {
             Name = "Goblin",
@@ -163,7 +163,7 @@ public class CombatStateServiceTests
     public void RollInitiativeForAll_ShouldSetInitiativeForAllCombatants()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party
         {
             Id = 1,
@@ -209,7 +209,7 @@ public class CombatStateServiceTests
     public void RollInitiativeForMonsters_ShouldSetInitiativeOnlyForMonsters()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party
         {
             Id = 1,
@@ -254,7 +254,7 @@ public class CombatStateServiceTests
     public void SetInitiative_ShouldUpdateInitiativeForCombatant()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party
         {
             Id = 1,
@@ -287,7 +287,7 @@ public class CombatStateServiceTests
     public void IsValidForCombat_ShouldReturnFalse_WhenNoCombatants()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
 
         // Act
         var result = service.IsValidForCombat();
@@ -300,7 +300,7 @@ public class CombatStateServiceTests
     public void IsValidForCombat_ShouldReturnTrue_WhenCombatantsExist()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party
         {
             Id = 1,
@@ -332,7 +332,7 @@ public class CombatStateServiceTests
     public void Reset_ShouldClearAllCombatData()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party
         {
             Id = 1,
@@ -367,7 +367,7 @@ public class CombatStateServiceTests
     public void OnChange_ShouldBeInvoked_WhenPartyIsSelected()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var eventInvoked = false;
         service.OnChange += () => eventInvoked = true;
         var party = new Party { Id = 1, Name = "Test Party" };
@@ -383,7 +383,7 @@ public class CombatStateServiceTests
     public void OnChange_ShouldBeInvoked_WhenMonsterIsAdded()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var eventInvoked = false;
         service.OnChange += () => eventInvoked = true;
         var monster = new Monster { Name = "Goblin", Type = "Humanoid", Hp = 7, AC = 15 };
@@ -399,7 +399,7 @@ public class CombatStateServiceTests
     public void OnChange_ShouldBeInvoked_WhenMonsterIsRemoved()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var monster = new Monster { Name = "Goblin", Type = "Humanoid", Hp = 7, AC = 15 };
         var added = service.AddMonster(monster);
         var eventInvoked = false;
@@ -416,7 +416,7 @@ public class CombatStateServiceTests
     public void SelectParty_ShouldRebuildCombatants_WhenPartyChanges()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party1 = new Party
         {
             Id = 1,
@@ -452,7 +452,7 @@ public class CombatStateServiceTests
     public void AddMonster_ShouldKeepExistingCharacters_WhenMonsterIsAdded()
     {
         // Arrange
-        var service = new CombatStateService();
+        var service = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         var party = new Party
         {
             Id = 1,
