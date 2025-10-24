@@ -46,7 +46,7 @@ public class CombatTrackerPageTests : TestContext
     public void CombatTracker_ShouldDisplayCombatUI_WhenCombatActive()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -60,7 +60,7 @@ public class CombatTrackerPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
         combatService.RollInitiativeForAll();
         combatService.StartCombat();
@@ -82,7 +82,7 @@ public class CombatTrackerPageTests : TestContext
     public void CombatTracker_ShouldDisplayDamageAndHealButtons_ForAliveCombatants()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -96,7 +96,7 @@ public class CombatTrackerPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
         combatService.RollInitiativeForAll();
         combatService.StartCombat();
@@ -119,7 +119,7 @@ public class CombatTrackerPageTests : TestContext
     public void CombatTracker_ShouldOnlyDisplayHealButton_ForUnconsciousCombatants()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -133,7 +133,7 @@ public class CombatTrackerPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
         combatService.RollInitiativeForAll();
         combatService.StartCombat();
@@ -160,7 +160,7 @@ public class CombatTrackerPageTests : TestContext
     public void CombatTracker_DamageButtonClick_ShouldOpenDamageModal()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -174,7 +174,7 @@ public class CombatTrackerPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
         combatService.RollInitiativeForAll();
         combatService.StartCombat();
@@ -198,7 +198,7 @@ public class CombatTrackerPageTests : TestContext
     public void CombatTracker_HealButtonClick_ShouldOpenHealModal()
     {
         // Arrange
-        var partyService = new PartyStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
         {
@@ -212,7 +212,7 @@ public class CombatTrackerPageTests : TestContext
             InitiativeModifier = 2
         });
 
-        var combatService = new CombatStateService();
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         combatService.SelectParty(party);
         combatService.RollInitiativeForAll();
         combatService.StartCombat();
@@ -239,8 +239,8 @@ public class CombatTrackerPageTests : TestContext
         // We test the service-level changes and UI refresh behavior
 
         // Arrange
-        var partyService = new PartyStateService();
-        var combatService = new CombatStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
@@ -309,8 +309,8 @@ public class CombatTrackerPageTests : TestContext
         // without testing complex interactions
         
         // Arrange
-        var partyService = new PartyStateService();
-        var combatService = new CombatStateService();
+        var partyService = new PartyStateService(TestHelpers.CreateMockLogger<PartyStateService>());
+        var combatService = new CombatStateService(TestHelpers.CreateMockLogger<CombatStateService>());
         
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);

@@ -19,6 +19,12 @@ builder.Services.AddSingleton<PartyStateService>();
 // Add combat state management service as singleton for in-memory storage
 builder.Services.AddSingleton<CombatStateService>();
 
+// Add local storage service for browser localStorage access
+builder.Services.AddScoped<LocalStorageService>();
+
+// Add storage state service for coordinating persistence
+builder.Services.AddScoped<StorageStateService>();
+
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
     {
         // This URL uses "https+http://" to indicate HTTPS is preferred over HTTP.
