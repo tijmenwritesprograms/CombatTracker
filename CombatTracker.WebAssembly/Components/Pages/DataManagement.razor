@@ -1,0 +1,301 @@
+@page "/data-management"
+@using CombatTracker.WebAssembly.Services
+@using System.Text
+@inject PartyStateService PartyService
+@inject CombatStateService CombatService
+@inject StorageStateService StorageService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+
+<PageTitle>Data Management - Combat Tracker</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="bi bi-database"></i> Data Management
+    </h1>
+
+    @if (!string.IsNullOrEmpty(_statusMessage))
+    {
+        <div class="alert @(_isError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+            <i class="bi @(_isError ? "bi-exclamation-triangle" : "bi-check-circle")"></i> @_statusMessage
+            <button type="button" class="btn-close" @onclick="ClearStatus"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Export Data Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-download"></i> Export Data</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Export all your party data and combat state as a JSON file.
+                        You can use this to backup your data or transfer it to another device.
+                    </p>
+                    <button class="btn btn-primary" @onclick="ExportData" disabled="@_isProcessing">
+                        @if (_isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        <i class="bi bi-download me-2"></i>Export to JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Data Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-upload"></i> Import Data</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Import party data and combat state from a JSON file.
+                        <strong>Warning:</strong> This will replace all current data.
+                    </p>
+                    <InputFile OnChange="HandleFileSelected" class="form-control mb-3" accept=".json" disabled="@_isProcessing" />
+                    @if (_selectedFile != null)
+                    {
+                        <p class="text-muted small mb-2">Selected: @_selectedFile.Name</p>
+                        <button class="btn btn-success" @onclick="ImportData" disabled="@_isProcessing">
+                            @if (_isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            <i class="bi bi-upload me-2"></i>Import from File
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Clear Data Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-trash"></i> Clear All Data</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Delete all party data and combat state from browser storage.
+                        <strong>Warning:</strong> This action cannot be undone. Consider exporting first.
+                    </p>
+                    @if (_confirmClear)
+                    {
+                        <div class="alert alert-warning">
+                            <strong>Are you sure?</strong> This will delete all data.
+                            <div class="mt-2">
+                                <button class="btn btn-danger btn-sm me-2" @onclick="ClearAllData" disabled="@_isProcessing">
+                                    @if (_isProcessing)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    }
+                                    Yes, Delete All
+                                </button>
+                                <button class="btn btn-secondary btn-sm" @onclick="() => _confirmClear = false">Cancel</button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-danger" @onclick="() => _confirmClear = true" disabled="@_isProcessing">
+                            <i class="bi bi-trash me-2"></i>Clear All Data
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Info Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Storage Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Parties:</strong> @PartyService.GetAllParties().Count</li>
+                        <li><strong>Total Characters:</strong> @PartyService.GetAllParties().Sum(p => p.Characters.Count)</li>
+                        <li><strong>Active Combat:</strong> @(CombatService.IsCombatActive ? "Yes" : "No")</li>
+                        @if (CombatService.ActiveCombat != null)
+                        {
+                            <li><strong>Combat Round:</strong> @CombatService.ActiveCombat.Round</li>
+                            <li><strong>Combatants:</strong> @CombatService.ActiveCombat.Combatants.Count</li>
+                        }
+                    </ul>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-shield-check"></i> Data is stored locally in your browser and never leaves your device.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _isProcessing = false;
+    private string? _statusMessage;
+    private bool _isError = false;
+    private bool _confirmClear = false;
+    private IBrowserFile? _selectedFile;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await PartyService.InitializeAsync();
+            await CombatService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        PartyService.OnChange += StateHasChanged;
+        CombatService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        PartyService.OnChange -= StateHasChanged;
+        CombatService.OnChange -= StateHasChanged;
+    }
+
+    private async Task ExportData()
+    {
+        _isProcessing = true;
+        _statusMessage = null;
+        
+        try
+        {
+            var (parties, nextPartyId, nextCharacterId) = PartyService.GetInternalState();
+            var combatData = CombatService.GetInternalState();
+            
+            var json = await StorageService.ExportAllDataAsync(parties, nextPartyId, nextCharacterId, combatData);
+            
+            if (json == null)
+            {
+                SetError("Failed to export data");
+                return;
+            }
+
+            // Download the JSON file
+            var fileName = $"combat-tracker-backup-{DateTime.Now:yyyy-MM-dd-HHmmss}.json";
+            var bytes = Encoding.UTF8.GetBytes(json);
+            var base64 = Convert.ToBase64String(bytes);
+            
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+            
+            SetSuccess("Data exported successfully!");
+        }
+        catch (Exception ex)
+        {
+            SetError($"Error exporting data: {ex.Message}");
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        _selectedFile = e.File;
+        _statusMessage = null;
+    }
+
+    private async Task ImportData()
+    {
+        if (_selectedFile == null) return;
+
+        _isProcessing = true;
+        _statusMessage = null;
+
+        try
+        {
+            // Read file content
+            var maxFileSize = 10 * 1024 * 1024; // 10 MB
+            using var stream = _selectedFile.OpenReadStream(maxFileSize);
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+
+            // Import data
+            var (partyData, combatData) = await StorageService.ImportDataAsync(json);
+            
+            if (partyData == null)
+            {
+                SetError("Invalid import file format");
+                return;
+            }
+
+            // Restore state
+            await PartyService.RestoreInternalStateAsync(partyData.Parties, partyData.NextPartyId, partyData.NextCharacterId);
+            await CombatService.RestoreInternalStateAsync(combatData);
+
+            SetSuccess("Data imported successfully!");
+            _selectedFile = null;
+        }
+        catch (Exception ex)
+        {
+            SetError($"Error importing data: {ex.Message}");
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task ClearAllData()
+    {
+        _isProcessing = true;
+        _statusMessage = null;
+
+        try
+        {
+            var success = await StorageService.ClearAllDataAsync();
+            
+            if (success)
+            {
+                // Clear in-memory state as well
+                await PartyService.RestoreInternalStateAsync(new List<CombatTracker.WebAssembly.Models.Party>(), 1, 1);
+                await CombatService.RestoreInternalStateAsync(null);
+                
+                SetSuccess("All data cleared successfully!");
+            }
+            else
+            {
+                SetError("Failed to clear data");
+            }
+        }
+        catch (Exception ex)
+        {
+            SetError($"Error clearing data: {ex.Message}");
+        }
+        finally
+        {
+            _isProcessing = false;
+            _confirmClear = false;
+        }
+    }
+
+    private void SetSuccess(string message)
+    {
+        _statusMessage = message;
+        _isError = false;
+    }
+
+    private void SetError(string message)
+    {
+        _statusMessage = message;
+        _isError = true;
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = null;
+    }
+}
