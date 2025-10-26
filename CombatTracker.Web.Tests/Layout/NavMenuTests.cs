@@ -66,14 +66,14 @@ public class NavMenuTests : TestContext
     }
 
     [Fact]
-    public void NavMenu_ShouldRenderFourNavigationItems()
+    public void NavMenu_ShouldRenderFiveNavigationItems()
     {
         // Arrange & Act
         var cut = RenderComponent<NavMenu>();
 
         // Assert
         var navItems = cut.FindAll(".nav-item");
-        Assert.Equal(4, navItems.Count);
+        Assert.Equal(5, navItems.Count);
     }
 
     [Fact]

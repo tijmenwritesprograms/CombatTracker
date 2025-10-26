@@ -211,10 +211,19 @@ else
     private Character? _editingCharacter = null;
     private int _currentPartyId = 0;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await PartyState.InitializeAsync();
+            LoadParties();
+            StateHasChanged();
+        }
+    }
+
     protected override void OnInitialized()
     {
         PartyState.OnChange += StateHasChanged;
-        LoadParties();
     }
 
     private void LoadParties()
