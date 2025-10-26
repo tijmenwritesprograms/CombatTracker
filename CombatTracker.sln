@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CombatTracker.Web.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CombatTracker.WebAssembly", "CombatTracker.WebAssembly\CombatTracker.WebAssembly.csproj", "{98C4A352-69B9-4F97-BB3F-83981B5183CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CombatTracker.WebAssembly.Tests", "CombatTracker.WebAssembly.Tests\CombatTracker.WebAssembly.Tests.csproj", "{722A71B4-8510-44D1-B13D-536C2C214EEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,18 @@ Global
 		{98C4A352-69B9-4F97-BB3F-83981B5183CA}.Release|x64.Build.0 = Release|Any CPU
 		{98C4A352-69B9-4F97-BB3F-83981B5183CA}.Release|x86.ActiveCfg = Release|Any CPU
 		{98C4A352-69B9-4F97-BB3F-83981B5183CA}.Release|x86.Build.0 = Release|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Debug|x64.Build.0 = Debug|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Debug|x86.Build.0 = Debug|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Release|x64.ActiveCfg = Release|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Release|x64.Build.0 = Release|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Release|x86.ActiveCfg = Release|Any CPU
+		{722A71B4-8510-44D1-B13D-536C2C214EEC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
