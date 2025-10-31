@@ -7,39 +7,44 @@
 
 <PageTitle>Party Management - D&D Combat Tracker</PageTitle>
 
-<h1>Party Management</h1>
+<div class="fade-in">
+    <h1>Party Management</h1>
 
-<div class="mb-4">
-    <button class="btn btn-primary" @onclick="ShowCreatePartyForm">
-        <span class="bi bi-plus-circle me-2"></span>Create New Party
-    </button>
-    <button class="btn btn-outline-secondary ms-2" @onclick="SeedTestParty">
-        Seed Test Party
-    </button>
-</div>
-
-@if (_showPartyForm)
-{
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5>@(_editingParty == null ? "Create New Party" : "Edit Party")</h5>
-        </div>
-        <div class="card-body">
-            <EditForm Model="_partyForm" OnValidSubmit="SaveParty">
-                <DataAnnotationsValidator />
-                <div class="mb-3">
-                    <label class="form-label">Party Name</label>
-                    <InputText class="form-control" @bind-Value="_partyForm.Name" />
-                    <ValidationMessage For="@(() => _partyForm.Name)" />
-                </div>
-                <div>
-                    <button type="submit" class="btn btn-success me-2">Save</button>
-                    <button type="button" class="btn btn-secondary" @onclick="CancelPartyForm">Cancel</button>
-                </div>
-            </EditForm>
-        </div>
+    <div class="mb-4">
+        <button class="btn btn-primary" @onclick="ShowCreatePartyForm" aria-label="Create new party">
+            <span class="bi bi-plus-circle me-2"></span>Create New Party
+        </button>
+        <button class="btn btn-outline-secondary ms-2" @onclick="SeedTestParty" aria-label="Seed test party with sample data">
+            Seed Test Party
+        </button>
     </div>
-}
+
+    @if (_showPartyForm)
+    {
+        <div class="card mb-4 slide-in">
+            <div class="card-header">
+                <h5>@(_editingParty == null ? "Create New Party" : "Edit Party")</h5>
+            </div>
+            <div class="card-body">
+                <EditForm Model="_partyForm" OnValidSubmit="SaveParty">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label for="partyName" class="form-label">Party Name</label>
+                        <InputText id="partyName" class="form-control" @bind-Value="_partyForm.Name" aria-required="true" />
+                        <ValidationMessage For="@(() => _partyForm.Name)" />
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-success me-2" aria-label="Save party">
+                            <span class="bi bi-check-circle me-1"></span>Save
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="CancelPartyForm" aria-label="Cancel editing">
+                            <span class="bi bi-x-circle me-1"></span>Cancel
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
 
 @if (_parties.Count == 0)
 {
@@ -116,72 +121,77 @@ else
 
 @if (_showCharacterForm)
 {
-    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-labelledby="characterFormTitle" aria-modal="true" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+            <div class="modal-content slide-in">
                 <div class="modal-header">
-                    <h5 class="modal-title">@(_editingCharacter == null ? "Add Character" : "Edit Character")</h5>
-                    <button type="button" class="btn-close" @onclick="CancelCharacterForm"></button>
+                    <h5 id="characterFormTitle" class="modal-title">@(_editingCharacter == null ? "Add Character" : "Edit Character")</h5>
+                    <button type="button" class="btn-close" @onclick="CancelCharacterForm" aria-label="Close"></button>
                 </div>
                 <EditForm Model="_characterForm" OnValidSubmit="SaveCharacter">
                     <DataAnnotationsValidator />
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Name</label>
-                                <InputText class="form-control" @bind-Value="_characterForm.Name" />
+                                <label for="characterName" class="form-label">Name</label>
+                                <InputText id="characterName" class="form-control" @bind-Value="_characterForm.Name" aria-required="true" />
                                 <ValidationMessage For="@(() => _characterForm.Name)" />
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Class</label>
-                                <InputText class="form-control" @bind-Value="_characterForm.Class" />
+                                <label for="characterClass" class="form-label">Class</label>
+                                <InputText id="characterClass" class="form-control" @bind-Value="_characterForm.Class" aria-required="true" />
                                 <ValidationMessage For="@(() => _characterForm.Class)" />
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Level</label>
-                                <InputNumber class="form-control" @bind-Value="_characterForm.Level" />
+                                <label for="characterLevel" class="form-label">Level</label>
+                                <InputNumber id="characterLevel" class="form-control" @bind-Value="_characterForm.Level" aria-required="true" />
                                 <ValidationMessage For="@(() => _characterForm.Level)" />
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">HP Max</label>
-                                <InputNumber class="form-control" @bind-Value="_characterForm.HpMax" />
+                                <label for="characterHpMax" class="form-label">HP Max</label>
+                                <InputNumber id="characterHpMax" class="form-control" @bind-Value="_characterForm.HpMax" aria-required="true" />
                                 <ValidationMessage For="@(() => _characterForm.HpMax)" />
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">HP Current</label>
-                                <InputNumber class="form-control" @bind-Value="_characterForm.HpCurrent" />
+                                <label for="characterHpCurrent" class="form-label">HP Current</label>
+                                <InputNumber id="characterHpCurrent" class="form-control" @bind-Value="_characterForm.HpCurrent" aria-required="true" />
                                 <ValidationMessage For="@(() => _characterForm.HpCurrent)" />
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">AC</label>
-                                <InputNumber class="form-control" @bind-Value="_characterForm.AC" />
+                                <label for="characterAC" class="form-label">AC</label>
+                                <InputNumber id="characterAC" class="form-control" @bind-Value="_characterForm.AC" aria-required="true" />
                                 <ValidationMessage For="@(() => _characterForm.AC)" />
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Initiative Modifier</label>
-                                <InputNumber class="form-control" @bind-Value="_characterForm.InitiativeModifier" />
+                                <label for="characterInitiative" class="form-label">Initiative Modifier</label>
+                                <InputNumber id="characterInitiative" class="form-control" @bind-Value="_characterForm.InitiativeModifier" aria-required="true" />
                                 <ValidationMessage For="@(() => _characterForm.InitiativeModifier)" />
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Notes (Optional)</label>
-                            <InputTextArea class="form-control" @bind-Value="_characterForm.Notes" rows="3" />
+                            <label for="characterNotes" class="form-label">Notes (Optional)</label>
+                            <InputTextArea id="characterNotes" class="form-control" @bind-Value="_characterForm.Notes" rows="3" aria-required="false" />
                             <ValidationMessage For="@(() => _characterForm.Notes)" />
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CancelCharacterForm">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Character</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CancelCharacterForm" aria-label="Cancel">
+                            <span class="bi bi-x-circle me-1"></span>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" aria-label="Save character">
+                            <span class="bi bi-check-circle me-1"></span>Save Character
+                        </button>
                     </div>
                 </EditForm>
             </div>
         </div>
     </div>
 }
+</div>
 
 <div class="mt-4">
     <a href="/" class="btn btn-secondary">Back to Home</a>
@@ -198,6 +208,14 @@ else
 
     .bi-plus-circle {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3E%3Cpath d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z'/%3E%3C/svg%3E");
+    }
+
+    .bi-check-circle {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3E%3Cpath d='M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z'/%3E%3C/svg%3E");
+    }
+
+    .bi-x-circle {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3E%3Cpath d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
     }
 </style>
 
