@@ -290,11 +290,46 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
      - Shows privacy notice about local storage
 
 
-#### 4.3 Design Principles
-- **Responsive Layout**: Uses Bootstrap CSS framework for mobile-first responsive design
-- **Accessibility**: Semantic HTML elements with proper ARIA labels
-- **Consistent Theme**: D&D themed color scheme with purple/blue gradient sidebar
-- **Clean Navigation**: Clear visual hierarchy with icon-based navigation items
+#### 4.3 Design Principles and UI/UX Enhancements
+- **Responsive Layout**: Uses Bootstrap 5 CSS framework for mobile-first responsive design
+- **Custom D&D Theme**: 
+  - Fantasy-inspired color palette (crimson red primary, dark secondary, gold accents)
+  - Custom fonts: Cinzel for headers (medieval/fantasy style), Lora for body text
+  - Purple/blue gradient sidebar with smooth transitions
+  - CSS animations for state changes (fade-in, slide-in, hover effects)
+  - Enhanced button styling with shadow effects and hover animations
+  
+- **Accessibility**: 
+  - Semantic HTML elements with proper ARIA labels on all interactive components
+  - ARIA roles and properties (aria-label, aria-required, aria-modal, etc.)
+  - Keyboard navigation support with focus indicators
+  - Screen reader friendly component structure
+  - High contrast ratios for text and UI elements
+  
+- **Visual Enhancements**:
+  - Card hover effects with 3D lift animations
+  - HP bar visualizations with gradient fills
+  - Initiative indicator with pulsing animation for current turn
+  - Combat log with color-coded entry types (Turn, Damage, Heal, Status)
+  - Enhanced badge and alert styling with borders and shadows
+  - Smooth transitions for all state changes (0.3s ease-in-out)
+  
+- **Keyboard Shortcuts**:
+  - N: Next Turn
+  - P: Previous Turn
+  - D: Apply Damage to current combatant
+  - H: Apply Healing to current combatant
+  - Escape: Close modals
+  - ?: Show keyboard shortcuts help
+  - All shortcuts disabled when typing in input fields
+  
+- **User Feedback Components**:
+  - Loading spinner component for async operations
+  - Toast notifications for success/error messages
+  - Keyboard shortcuts help modal
+  - Visual progress indicators and loading states
+  
+- **Clean Navigation**: Clear visual hierarchy with icon-based navigation items and intuitive page flow
 
 ---
 

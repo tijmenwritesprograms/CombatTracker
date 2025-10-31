@@ -5,10 +5,14 @@
 @using CombatTracker.WebAssembly.Services
 @inject CombatStateService CombatStateService
 @inject NavigationManager NavigationManager
+@inject KeyboardShortcutService KeyboardShortcuts
 
 <PageTitle>Combat Tracker - D&D Combat Tracker</PageTitle>
 
-<h1>Combat Tracker</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Combat Tracker</h1>
+    <KeyboardShortcutsHelp />
+</div>
 
 @if (!CombatStateService.IsCombatActive)
 {
@@ -22,20 +26,20 @@ else
         <div class="col">
             <div class="card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="mb-2 mb-md-0">
                             <h4 class="mb-0">Round @CombatStateService.ActiveCombat!.Round</h4>
                         </div>
-                        <div class="btn-group">
-                            <button class="btn btn-outline-secondary" @onclick="PreviousTurn">
+                        <div class="btn-group mb-2 mb-md-0">
+                            <button class="btn btn-outline-secondary" @onclick="PreviousTurn" title="Previous Turn (P)">
                                 <span class="bi bi-arrow-left"></span> Previous Turn
                             </button>
-                            <button class="btn btn-primary" @onclick="NextTurn">
+                            <button class="btn btn-primary" @onclick="NextTurn" title="Next Turn (N)">
                                 Next Turn <span class="bi bi-arrow-right"></span>
                             </button>
                         </div>
                         <div>
-                            <button class="btn btn-danger" @onclick="EndCombat">
+                            <button class="btn btn-danger" @onclick="EndCombat" title="End Combat (E)">
                                 <span class="bi bi-x-circle"></span> End Combat
                             </button>
                         </div>
@@ -77,28 +81,47 @@ else
                                     // Apply strikethrough for unconscious/dead combatants
                                     var textClass = instance.Status != Status.Alive ? "text-decoration-line-through text-muted" : "";
 
-                                    <tr class="@rowClass">
+                                    <tr class="@rowClass slide-in">
                                         <td>
                                             @if (isCurrentTurn)
                                             {
-                                                <span class="bi bi-caret-right-fill text-primary" style="font-size: 1.5rem;"></span>
+                                                <div class="initiative-indicator" title="Current Turn">
+                                                    <span class="bi bi-caret-right-fill" style="font-size: 1rem; color: white;"></span>
+                                                </div>
                                             }
                                         </td>
-                                        <td><strong>@instance.Initiative</strong></td>
-                                        <td class="@textClass">@data.Name</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <strong style="font-size: 1.1rem;">@instance.Initiative</strong>
+                                            </div>
+                                        </td>
+                                        <td class="@textClass">
+                                            <strong>@data.Name</strong>
+                                        </td>
                                         <td class="@textClass">@data.Type</td>
                                         <td>
-                                            <span class="@textClass">@instance.HpCurrent / @data.HpMax</span>
-                                            @if (instance.HpCurrent <= 0)
+                                            <div>
+                                                <span class="@textClass">@instance.HpCurrent / @data.HpMax</span>
+                                                @if (instance.HpCurrent <= 0)
+                                                {
+                                                    <span class="badge bg-danger ms-1">0 HP</span>
+                                                }
+                                                else if (instance.HpCurrent < data.HpMax / 2)
+                                                {
+                                                    <span class="badge bg-warning ms-1">Bloodied</span>
+                                                }
+                                            </div>
+                                            @if (instance.HpCurrent > 0)
                                             {
-                                                <span class="badge bg-danger ms-1">0 HP</span>
-                                            }
-                                            else if (instance.HpCurrent < data.HpMax / 2)
-                                            {
-                                                <span class="badge bg-warning ms-1">Bloodied</span>
+                                                var hpPercent = (int)((double)instance.HpCurrent / data.HpMax * 100);
+                                                <div class="hp-bar" title="HP: @instance.HpCurrent / @data.HpMax">
+                                                    <div class="hp-bar-fill" style="width: @hpPercent%"></div>
+                                                </div>
                                             }
                                         </td>
-                                        <td class="@textClass">@data.AC</td>
+                                        <td class="@textClass">
+                                            <span class="badge bg-secondary">AC @data.AC</span>
+                                        </td>
                                         <td>
                                             @if (instance.Status == Status.Alive)
                                             {
@@ -117,10 +140,10 @@ else
                                             @if (instance.Status == Status.Alive)
                                             {
                                                 <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-outline-danger" @onclick="() => ShowDamageModal(instance.Index)">
+                                                    <button class="btn btn-outline-danger" @onclick="() => ShowDamageModal(instance.Index)" title="Apply Damage (D)">
                                                         <span class="bi bi-dash-circle"></span> Damage
                                                     </button>
-                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)">
+                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)" title="Apply Healing (H)">
                                                         <span class="bi bi-plus-circle"></span> Heal
                                                     </button>
                                                 </div>
@@ -128,7 +151,7 @@ else
                                             else
                                             {
                                                 <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)">
+                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)" title="Apply Healing (H)">
                                                         <span class="bi bi-plus-circle"></span> Heal
                                                     </button>
                                                 </div>
@@ -148,22 +171,31 @@ else
                 <div class="card-header">
                     <h4>Combat Log</h4>
                 </div>
-                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                <div class="card-body" style="max-height: 600px; overflow-y: auto; background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);">
                     @if (CombatStateService.CombatLog.Count == 0)
                     {
                         <p class="text-muted">No entries yet.</p>
                     }
                     else
                     {
-                        <div class="list-group">
+                        <div>
                             @foreach (var entry in CombatStateService.CombatLog.OrderByDescending(e => e.Timestamp))
                             {
-                                <div class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <small class="text-muted">Round @entry.Round</small>
+                                var logClass = entry.Type switch
+                                {
+                                    "Turn" => "log-turn",
+                                    "Damage" => "log-damage",
+                                    "Heal" => "log-heal",
+                                    "Status" => "log-status",
+                                    _ => ""
+                                };
+
+                                <div class="combat-log-entry @logClass fade-in">
+                                    <div class="d-flex w-100 justify-content-between mb-1">
+                                        <small class="text-muted fw-bold">Round @entry.Round</small>
                                         <small class="text-muted">@entry.Timestamp.ToString("HH:mm:ss")</small>
                                     </div>
-                                    <p class="mb-1">
+                                    <div class="mb-1">
                                         @if (entry.Type == "Turn")
                                         {
                                             <span class="badge bg-primary me-1">Turn</span>
@@ -180,8 +212,8 @@ else
                                         {
                                             <span class="badge bg-warning me-1">Status</span>
                                         }
-                                        @entry.Message
-                                    </p>
+                                        <span>@entry.Message</span>
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -266,6 +298,8 @@ else
         if (firstRender)
         {
             await CombatStateService.InitializeAsync();
+            await KeyboardShortcuts.InitializeAsync();
+            RegisterKeyboardShortcuts();
             StateHasChanged();
         }
     }
@@ -279,6 +313,54 @@ else
         {
             // Allow the page to render the warning message
         }
+    }
+
+    private void RegisterKeyboardShortcuts()
+    {
+        // Register keyboard shortcuts for combat actions
+        KeyboardShortcuts.RegisterShortcut("n", async () => 
+        {
+            if (CombatStateService.IsCombatActive)
+            {
+                NextTurn();
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("p", async () => 
+        {
+            if (CombatStateService.IsCombatActive)
+            {
+                PreviousTurn();
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("d", async () => 
+        {
+            if (CombatStateService.IsCombatActive && !showDamageModal && !showHealModal)
+            {
+                var currentIndex = CombatStateService.ActiveCombat?.TurnIndex ?? 0;
+                ShowDamageModal(currentIndex);
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("h", async () => 
+        {
+            if (CombatStateService.IsCombatActive && !showDamageModal && !showHealModal)
+            {
+                var currentIndex = CombatStateService.ActiveCombat?.TurnIndex ?? 0;
+                ShowHealModal(currentIndex);
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("escape", async () => 
+        {
+            CloseModals();
+            await InvokeAsync(StateHasChanged);
+        });
     }
 
     private void RefreshState()
@@ -343,5 +425,9 @@ else
     public void Dispose()
     {
         CombatStateService.OnChange -= RefreshState;
+        
+        // Dispose keyboard shortcuts service
+        // Note: We can't await here in a synchronous Dispose, but the service handles cleanup properly
+        _ = KeyboardShortcuts.DisposeAsync();
     }
 }

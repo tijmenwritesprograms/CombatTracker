@@ -1,0 +1,25 @@
+@* Loading Spinner Component *@
+
+@if (IsVisible)
+{
+    <div class="loading-overlay @CssClass">
+        <div class="loading-content">
+            <div class="loading-spinner mb-3"></div>
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <p class="mb-0">@Message</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public string Message { get; set; } = "Loading...";
+
+    [Parameter]
+    public string CssClass { get; set; } = "";
+}

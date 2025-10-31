@@ -25,6 +25,9 @@ builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 // Add storage state service for coordinating persistence
 builder.Services.AddScoped<StorageStateService>();
 
+// Add keyboard shortcut service for keyboard navigation
+builder.Services.AddScoped<KeyboardShortcutService>();
+
 // Add WeatherApiClient (if needed for API service integration)
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
 {
