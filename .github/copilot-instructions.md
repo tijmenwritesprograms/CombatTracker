@@ -4,13 +4,13 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 
 ## Tech Stack
 
-- **Framework**: ASP.NET Core Blazor Server
-- **Frontend**: Blazor components with Razor syntax
-- **State Management**: Blazor state container or service-based state management
-- **UI Library**: Bootstrap or custom CSS (Blazor-compatible)
-- **Backend**: ASP.NET Core with C#
-- **Database**: Entity Framework Core with SQLite or SQL Server
-- **AI Integration**: HTTP clients calling LLM endpoints for statblock parsing and combat narration
+- **Framework**: ASP.NET Core Blazor WebAssembly (Standalone)
+- **Frontend**: Blazor components with Razor syntax running client-side via WebAssembly
+- **State Management**: Client-side service-based state management with browser localStorage
+- **UI Library**: Bootstrap 5
+- **Backend**: ASP.NET Core API service for future AI features
+- **Orchestration**: .NET Aspire for development and deployment
+- **Testing**: bUnit and xUnit for component and unit tests
 
 ## Coding Standards
 
@@ -23,7 +23,7 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 - Follow C# naming conventions and .NET coding standards
 - Use nullable reference types to prevent null reference exceptions
 - Prefer dependency injection for service registration and consumption
-- Use Entity Framework Core for data access with proper DbContext patterns
+- Use browser localStorage for data persistence via JSInterop
 
 ## Project Structure
 
@@ -37,11 +37,11 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 
 ### Key Features
 
-1. **Party Management**: Create, edit, delete party members with persistent data using Entity Framework Core
+1. **Party Management**: Create, edit, delete party members with client-side state and localStorage persistence
 2. **Combat Setup**: Start combat with party selection, monster addition, and initiative rolling through Blazor forms
-3. **Combat Tracking**: Initiative order management, turn progression, HP tracking with real-time UI updates via Blazor's state management
-4. **AI-Assisted Features**:
-   - Statblock parsing: Extract monster data from pasted text using HTTP calls to LLM APIs
+3. **Combat Tracking**: Initiative order management, turn progression, HP tracking with real-time UI updates via Blazor's client-side state management
+4. **AI-Assisted Features** (planned):
+   - Statblock parsing: Extract monster data from pasted text using HTTP calls to API service
    - Combat narration: Generate immersive descriptions for attack outcomes
 
 ## AI Integration Guidelines
@@ -65,11 +65,12 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 
 ## Testing Requirements
 
-- Write unit tests for all new features and bug fixes using xUnit or NUnit
+- Write unit tests for all new features and bug fixes using xUnit
 - Test AI integration endpoints with mock HTTP responses
 - Test combat logic thoroughly (initiative order, turn progression, HP changes)
-- Test data persistence with Entity Framework Core (use in-memory database for testing)
-- Use MOQ or NSubstitute for mocking dependencies
+- Test data persistence with localStorage mocking
+- Use Moq for mocking dependencies
+- Use bUnit for Blazor component testing
 - Aim for high code coverage on business logic and services
 
 ## Security Practices
@@ -77,17 +78,17 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 - Never hardcode API keys or secrets; use User Secrets for development and Azure Key Vault for production
 - Use configuration from appsettings.json and environment variables for LLM API endpoints
 - Secure LLM API usage with proper authentication tokens
-- Validate all user inputs using data annotations and server-side validation
+- Validate all user inputs using data annotations and client-side validation
 - Sanitize AI-generated content before rendering in Blazor components
-- Use proper authorization and authentication with ASP.NET Core Identity if user accounts are needed
+- Use proper authorization and authentication if user accounts are needed
 
 ## Performance Requirements
 
 - Fast initiative sorting and state updates (<100ms)
-- Responsive design (usable on desktop/tablet) using Bootstrap or custom responsive CSS
-- Use Blazor Server's SignalR connection efficiently to minimize bandwidth
-- Optimize database queries with Entity Framework Core (use proper indexing and eager loading)
-- Minimize LLM API call latency with proper async patterns
+- Responsive design (usable on desktop/tablet) using Bootstrap
+- Optimize WebAssembly bundle size (consider lazy loading for large assemblies)
+- Minimize localStorage operations for better performance
+- Minimize API call latency with proper async patterns
 
 ## Documentation
 
@@ -113,5 +114,7 @@ Consider these planned features when designing:
 - Automated dice roller integration with real-time updates
 - Map or token view using Blazor components or JavaScript interop
 - Voice narration output using Text-to-Speech APIs
-- Integration with D&D Beyond or Foundry VTT APIs
+- Integration with D&D Beyond or other APIs
 - Export combat log to text or JSON format
+- Progressive Web App (PWA) support for offline functionality
+- Service worker for background sync and caching

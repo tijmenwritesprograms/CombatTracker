@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CombatTracker.ApiService\CombatTracker.ApiService.csproj" />
-    <ProjectReference Include="..\CombatTracker.Web\CombatTracker.Web.csproj" />
+    <ProjectReference Include="..\CombatTracker.WebAssembly\CombatTracker.WebAssembly.csproj" />
   </ItemGroup>
 
   <ItemGroup>
