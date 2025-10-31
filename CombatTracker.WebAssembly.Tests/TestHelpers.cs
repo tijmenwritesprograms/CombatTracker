@@ -24,6 +24,14 @@ public static class TestHelpers
     public static KeyboardShortcutService CreateMockKeyboardShortcutService()
     {
         var mockJsRuntime = new Mock<IJSRuntime>();
+        
+        // Setup mock to return null for import calls (initialization will fail gracefully)
+        mockJsRuntime
+            .Setup(x => x.InvokeAsync<IJSObjectReference>(
+                It.IsAny<string>(), 
+                It.IsAny<object[]>()))
+            .ThrowsAsync(new JSException("Mock JS module not available"));
+        
         return new KeyboardShortcutService(mockJsRuntime.Object);
     }
 }

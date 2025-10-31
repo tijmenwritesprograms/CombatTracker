@@ -425,5 +425,9 @@ else
     public void Dispose()
     {
         CombatStateService.OnChange -= RefreshState;
+        
+        // Dispose keyboard shortcuts service
+        // Note: We can't await here in a synchronous Dispose, but the service handles cleanup properly
+        _ = KeyboardShortcuts.DisposeAsync();
     }
 }

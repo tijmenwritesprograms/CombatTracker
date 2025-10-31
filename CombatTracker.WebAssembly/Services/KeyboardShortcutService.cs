@@ -32,9 +32,14 @@ public class KeyboardShortcutService : IAsyncDisposable
             await _module.InvokeVoidAsync("initialize", _dotNetRef);
             _initialized = true;
         }
-        catch (Exception)
+        catch (JSException)
         {
-            // Keyboard shortcuts are optional, don't break the app if they fail
+            // Keyboard shortcuts are optional features - JS module loading may fail in some environments
+            // (e.g., during pre-rendering or in certain hosting scenarios). Silently fail to avoid breaking the app.
+        }
+        catch (InvalidOperationException)
+        {
+            // JSRuntime may not be available during pre-rendering
         }
     }
 

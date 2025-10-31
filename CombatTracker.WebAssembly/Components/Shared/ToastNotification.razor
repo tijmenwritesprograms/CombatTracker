@@ -3,33 +3,33 @@
 @if (IsVisible)
 {
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-        <div class="toast show @ToastClass fade-in" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast show @ToastClass fade-in" role="alert" aria-live="assertive" aria-atomic="true" aria-describedby="toast-message-@_toastId">
             <div class="toast-header">
-                <strong class="me-auto">
+                <strong class="me-auto" id="toast-title-@_toastId">
                     @if (Type == ToastType.Success)
                     {
-                        <span class="bi bi-check-circle-fill text-success me-2"></span>
+                        <span class="bi bi-check-circle-fill text-success me-2" aria-hidden="true"></span>
                         <text>Success</text>
                     }
                     else if (Type == ToastType.Error)
                     {
-                        <span class="bi bi-exclamation-circle-fill text-danger me-2"></span>
+                        <span class="bi bi-exclamation-circle-fill text-danger me-2" aria-hidden="true"></span>
                         <text>Error</text>
                     }
                     else if (Type == ToastType.Warning)
                     {
-                        <span class="bi bi-exclamation-triangle-fill text-warning me-2"></span>
+                        <span class="bi bi-exclamation-triangle-fill text-warning me-2" aria-hidden="true"></span>
                         <text>Warning</text>
                     }
                     else
                     {
-                        <span class="bi bi-info-circle-fill text-info me-2"></span>
+                        <span class="bi bi-info-circle-fill text-info me-2" aria-hidden="true"></span>
                         <text>Info</text>
                     }
                 </strong>
-                <button type="button" class="btn-close" @onclick="Dismiss" aria-label="Close"></button>
+                <button type="button" class="btn-close" @onclick="Dismiss" aria-label="Close notification"></button>
             </div>
-            <div class="toast-body">
+            <div class="toast-body" id="toast-message-@_toastId">
                 @Message
             </div>
         </div>
@@ -89,6 +89,8 @@
 
     [Parameter]
     public EventCallback OnDismiss { get; set; }
+
+    private readonly string _toastId = Guid.NewGuid().ToString("N");
 
     private string ToastClass => Type switch
     {
