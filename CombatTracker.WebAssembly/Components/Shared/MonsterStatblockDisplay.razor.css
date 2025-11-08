@@ -1,0 +1,44 @@
+.statblock-display {
+    font-family: 'Lora', Georgia, serif;
+    color: #333;
+}
+
+.monster-name {
+    font-family: 'Cinzel', serif;
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.statblock-divider {
+    border: none;
+    height: 2px;
+    background-color: var(--primary-color);
+    margin: 0.75rem 0;
+}
+
+.statblock-section p {
+    margin-bottom: 0.5rem;
+}
+
+.statblock-section strong {
+    color: var(--secondary-color);
+}
+
+.section-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    border-bottom: 1px solid var(--primary-color);
+    padding-bottom: 0.25rem;
+}
+
+.trait-name,
+.action-name {
+    font-style: italic;
+    color: var(--primary-color);
+}
+
+.action,
+.trait {
+    text-align: justify;
+}
