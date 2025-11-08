@@ -56,12 +56,27 @@ CombatTracker/
 
 ### Core Entities
 
-- **Party**: Group of player characters with persistent data stored in localStorage
-- **Character**: Player character with stats (name, class, level, HP, AC, initiative modifier, notes)
-- **Monster**: Enemy creature with combat stats and attacks (name, type, HP, AC, initiative, attacks)
-- **Combat**: Active combat session tracking combatants, initiative order, rounds, turns, and combat log
-- **CombatantInstance**: Individual combatant instance in combat with current state (initiative, HP, status)
-- **CombatLogEntry**: Log entry for combat events (turn changes, damage, healing, status changes)
+- **Party**: Represents a group of player characters with persistent data
+- **Character**: Player character with stats (name, class, level, HP, AC, initiative modifier, etc.)
+- **Monster**: Enemy creature with full D&D 5e statblock support including:
+  - Basic info: name, size, type, subtype, alignment
+  - Defense: AC, armor type, HP, HP formula
+  - Movement: speed, fly speed, swim speed, climb speed, burrow speed
+  - Ability scores: STR, DEX, CON, INT, WIS, CHA with automatic modifier calculation
+  - Proficiencies: saving throws, skills
+  - Resistances: damage vulnerabilities, resistances, immunities, condition immunities
+  - Senses: darkvision, blindsight, passive perception, etc.
+  - Languages: spoken and understood languages
+  - Challenge rating: CR and XP value, proficiency bonus
+  - Traits: special abilities (e.g., "Aggressive", "Pack Tactics")
+  - Actions: regular actions, bonus actions, reactions
+  - Legendary actions: legendary actions and actions per round
+  - Lair actions: environment-based actions
+- **MonsterTrait**: Special trait or ability with name and description
+- **MonsterAction**: Action with full attack details (attack type, attack bonus, reach/range, damage formula, damage type)
+- **AbilityScores**: Six D&D ability scores with automatic modifier calculation
+- **Combat**: Active combat session tracking combatants, initiative order, rounds, and turns
+- **CombatantInstance**: Individual combatant in a combat with current state (initiative, HP, status)
 
 ### Key Features
 
@@ -110,8 +125,19 @@ CombatTracker/
 ### Statblock Parsing
 
 - Endpoint: `/api/parse-statblock`
-- Extract: Name, Type, HP (max and formula), AC, Attack bonuses, Damage values, Speed, Saving throws, Special abilities
-- Return structured JSON or prefilled form fields
+- Extract all D&D 5e statblock properties:
+  - Basic: name, size, type, subtype, alignment
+  - Defense: AC, armor type, HP, HP formula
+  - Movement: all speed types (walk, fly, swim, climb, burrow)
+  - Ability scores: STR, DEX, CON, INT, WIS, CHA
+  - Proficiencies: saving throws, skills
+  - Resistances: vulnerabilities, resistances, immunities, condition immunities
+  - Senses and languages
+  - Challenge rating, XP, proficiency bonus
+  - Traits: special abilities with names and descriptions
+  - Actions: all action types (actions, bonus actions, reactions, legendary, lair)
+  - For each action: name, description, attack type, attack bonus, reach/range, damage formula and type
+- Return structured JSON matching Monster model
 - User should review and confirm before adding to combat
 
 ### Combat Narration

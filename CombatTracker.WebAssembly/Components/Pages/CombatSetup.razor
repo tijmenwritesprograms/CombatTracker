@@ -82,6 +82,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary">Add Monster</button>
+                <button type="button" class="btn btn-outline-danger ms-2" @onclick="AddOrcTestMonster">Add Orc (Test)</button>
                 </EditForm>
             </div>
         </div>
@@ -178,6 +179,87 @@
     private Dictionary<string, CombatantSetupData> combatants = new();
     private Monster newMonster = new() { Type = "Humanoid" };
     private bool canStartCombat => CombatStateService.IsValidForCombat();
+
+    private void AddOrcTestMonster()
+    {
+        var orc = new Monster
+        {
+            Name = "Orc",
+            Size = "Medium",
+            Type = "Humanoid",
+            Subtype = "Orc",
+            Alignment = "Chaotic Evil",
+            AC = 13,
+            ArmorType = "hide armor",
+            Hp = 15,
+            HpFormula = "2d8 + 6",
+            Speed = 30,
+            FlySpeed = 0,
+            SwimSpeed = 0,
+            ClimbSpeed = 0,
+            BurrowSpeed = 0,
+            Abilities = new AbilityScores
+            {
+                Strength = 16,
+                Dexterity = 12,
+                Constitution = 16,
+                Intelligence = 7,
+                Wisdom = 11,
+                Charisma = 10
+            },
+            Skills = "Intimidation +2",
+            SavingThrows = null,
+            Vulnerabilities = null,
+            Resistances = null,
+            Immunities = null,
+            ConditionImmunities = null,
+            Senses = "Darkvision 60 ft., Passive Perception 10",
+            Languages = "Common, Orc",
+            ChallengeRating = "1/2",
+            ExperiencePoints = 100,
+            ProficiencyBonus = 2,
+            InitiativeModifier = 1,
+            Traits = new List<MonsterTrait>
+            {
+                new MonsterTrait
+                {
+                    Name = "Aggressive",
+                    Description = "As a bonus action, the orc can move up to its speed toward a hostile creature that it can see."
+                }
+            },
+            Actions = new List<MonsterAction>
+            {
+                new MonsterAction
+                {
+                    Name = "Greataxe",
+                    Description = "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 9 (1d12 + 3) slashing damage.",
+                    AttackType = "Melee Weapon Attack",
+                    AttackBonus = 5,
+                    Reach = 5,
+                    DamageFormula = "1d12 + 3",
+                    DamageType = "slashing"
+                },
+                new MonsterAction
+                {
+                    Name = "Javelin",
+                    Description = "Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 6 (1d6 + 3) piercing damage.",
+                    AttackType = "Melee or Ranged Weapon Attack",
+                    AttackBonus = 5,
+                    Reach = 5,
+                    Range = "30/120",
+                    DamageFormula = "1d6 + 3",
+                    DamageType = "piercing"
+                }
+            },
+            BonusActions = new List<MonsterAction>(),
+            Reactions = new List<MonsterAction>(),
+            LegendaryActions = new List<MonsterAction>(),
+            LegendaryActionsPerRound = 0,
+            LairActions = new List<MonsterAction>()
+        };
+        CombatStateService.AddMonster(orc);
+        RefreshCombatants();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

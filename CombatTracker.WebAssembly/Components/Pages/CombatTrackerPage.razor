@@ -9,6 +9,29 @@
 
 <PageTitle>Combat Tracker - D&D Combat Tracker</PageTitle>
 
+<style>
+    .monster-name-link {
+        cursor: pointer;
+        color: var(--bs-danger);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .monster-name-link:hover {
+        color: var(--bs-danger);
+        text-decoration: underline;
+        filter: brightness(1.2);
+    }
+
+    .monster-quick-reference {
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+
+    .monster-quick-reference .card {
+        border-color: var(--bs-danger);
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0">Combat Tracker</h1>
     <KeyboardShortcutsHelp />
@@ -96,7 +119,27 @@ else
                                             </div>
                                         </td>
                                         <td class="@textClass">
-                                            <strong>@data.Name</strong>
+                                            @if (!data.IsCharacter)
+                                            {
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <strong class="monster-name-link flex-grow-1 text-truncate" style="min-width:0;" 
+                                                            @onclick="() => ShowStatblock(data.ReferenceId)" 
+                                                            title="Click to view full statblock">
+                                                        @data.Name
+                                                    </strong>
+                                                    <button class="btn btn-sm btn-link p-0 ms-2 d-inline-flex align-items-center" 
+                                                            @onclick="() => ToggleQuickReference(instance.Index)"
+                                                            title="Toggle quick reference" aria-label="Toggle quick reference">
+                                                        @* Primary: Bootstrap Icon; Fallback: textual chevron shown when icons unavailable *@
+                                                        <i class="bi @( _expandedQuickRef == instance.Index ? "bi-chevron-up" : "bi-chevron-down" )" aria-hidden="true"></i>
+                                                        <span class="chevron-fallback ms-1">@(_expandedQuickRef == instance.Index ? "▴" : "▾")</span>
+                                                    </button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <strong>@data.Name</strong>
+                                            }
                                         </td>
                                         <td class="@textClass">@data.Type</td>
                                         <td>
@@ -158,6 +201,76 @@ else
                                             }
                                         </td>
                                     </tr>
+                                    @* Quick Reference Row (Collapsible) *@
+                                    @if (!data.IsCharacter && _expandedQuickRef == instance.Index)
+                                    {
+                                        var monster = CombatStateService.GetMonsterById(data.ReferenceId);
+                                        if (monster != null)
+                                        {
+                                            <tr class="monster-quick-reference">
+                                                <td colspan="7" class="p-3">
+                                                    <div class="card border-danger bg-light">
+                                                        <div class="card-body text-dark">
+                                                            <h6 class="card-title text-danger mb-3">Quick Reference</h6>
+                                                            <div class="row">
+                                                                <div class="col-md-3">
+                                                                    <strong>AC:</strong> @monster.AC @(!string.IsNullOrWhiteSpace(monster.ArmorType) ? $"({monster.ArmorType})" : "")
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <strong>HP:</strong> @monster.Hp @(!string.IsNullOrWhiteSpace(monster.HpFormula) ? $"({monster.HpFormula})" : "")
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <strong>Speed:</strong> @monster.Speed ft.
+                                                                    @if (monster.FlySpeed > 0) { <text>, fly @monster.FlySpeed ft.</text> }
+                                                                    @if (monster.SwimSpeed > 0) { <text>, swim @monster.SwimSpeed ft.</text> }
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <strong>CR:</strong> @monster.ChallengeRating
+                                                                </div>
+                                                            </div>
+                                                            @if (monster.Actions?.Any() == true)
+                                                            {
+                                                                <div class="mt-3">
+                                                                    <strong>Primary Actions:</strong>
+                                                                    <ul class="mb-0 mt-1">
+                                                                        @foreach (var action in monster.Actions.Take(3))
+                                                                        {
+                                                                            <li>
+                                                                                <strong>@action.Name:</strong>
+                                                                                @if (!string.IsNullOrWhiteSpace(action.AttackType))
+                                                                                {
+                                                                                    <span>
+                                                                                        @action.AttackType: 
+                                                                                        @(action.AttackBonus.HasValue ? (action.AttackBonus >= 0 ? "+" : "") + action.AttackBonus.ToString() : "") to hit
+                                                                                        @if (action.Reach.HasValue)
+                                                                                        {
+                                                                                            <text>, reach @action.Reach ft.</text>
+                                                                                        }
+                                                                                        @if (!string.IsNullOrWhiteSpace(action.Range))
+                                                                                        {
+                                                                                            <text>, range @action.Range ft.</text>
+                                                                                        }
+                                                                                        @if (!string.IsNullOrWhiteSpace(action.DamageFormula))
+                                                                                        {
+                                                                                            <text>. Hit: @action.DamageFormula @action.DamageType damage</text>
+                                                                                        }
+                                                                                    </span>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    @action.Description
+                                                                                }
+                                                                            </li>
+                                                                        }
+                                                                    </ul>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
                                 }
                             }
                         </tbody>
@@ -284,6 +397,27 @@ else
             </div>
         </div>
     }
+
+    @* Monster Statblock Modal *@
+    @if (_showStatblockModal && _selectedMonster != null)
+    {
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);" @onclick="CloseStatblockModal">
+            <div class="modal-dialog modal-xl" role="document" @onclick:stopPropagation="true">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@_selectedMonster.Name Statblock</h5>
+                        <button type="button" class="btn-close" @onclick="CloseStatblockModal"></button>
+                    </div>
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                        <MonsterStatblockDisplay Monster="_selectedMonster" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseStatblockModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -292,6 +426,9 @@ else
     private int selectedCombatantIndex;
     private int damageAmount = 5;
     private int healAmount = 5;
+    private int? _expandedQuickRef = null;
+    private bool _showStatblockModal = false;
+    private Monster? _selectedMonster = null;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -420,6 +557,33 @@ else
     {
         CombatStateService.EndCombat();
         NavigationManager.NavigateTo("/combat-setup");
+    }
+
+    private void ShowStatblock(int monsterId)
+    {
+        _selectedMonster = CombatStateService.GetMonsterById(monsterId);
+        if (_selectedMonster != null)
+        {
+            _showStatblockModal = true;
+        }
+    }
+
+    private void CloseStatblockModal()
+    {
+        _showStatblockModal = false;
+        _selectedMonster = null;
+    }
+
+    private void ToggleQuickReference(int combatantIndex)
+    {
+        if (_expandedQuickRef == combatantIndex)
+        {
+            _expandedQuickRef = null;
+        }
+        else
+        {
+            _expandedQuickRef = combatantIndex;
+        }
     }
 
     public void Dispose()
