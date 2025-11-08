@@ -1,16 +1,17 @@
 # Copilot Instructions
 
-This project is a **D&D Combat Tracker** web application designed to manage and streamline combat encounters in tabletop RPGs, primarily Dungeons & Dragons (5e). It allows users to manage player characters, add monsters, track initiative and turn order, and automate descriptive combat narration using AI-assisted features.
+This project is a **D&D Combat Tracker** web application designed to manage and streamline combat encounters in tabletop RPGs, primarily Dungeons & Dragons (5e). It allows users to manage player characters, add monsters, track initiative and turn order, and includes AI-assisted features for statblock parsing and combat narration.
 
 ## Tech Stack
 
-- **Framework**: ASP.NET Core Blazor WebAssembly (Standalone)
+- **Framework**: ASP.NET Core Blazor WebAssembly (Standalone) - migrated from Blazor Server
 - **Frontend**: Blazor components with Razor syntax running client-side via WebAssembly
-- **State Management**: Client-side service-based state management with browser localStorage
-- **UI Library**: Bootstrap 5
-- **Backend**: ASP.NET Core API service for future AI features
-- **Orchestration**: .NET Aspire for development and deployment
-- **Testing**: bUnit and xUnit for component and unit tests
+- **State Management**: Client-side service-based state management with browser localStorage persistence via JSInterop
+- **UI Library**: Bootstrap 5 with custom D&D-themed CSS (Cinzel/Lora fonts, crimson/gold palette)
+- **JavaScript Interop**: Keyboard shortcuts service using ES6 modules
+- **Backend**: ASP.NET Core API service for future AI features (statblock parsing, combat narration)
+- **Orchestration**: .NET Aspire for development orchestration and observability
+- **Testing**: bUnit for component testing and xUnit for unit tests (121 tests passing)
 
 ## Coding Standards
 
@@ -26,6 +27,32 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 - Use browser localStorage for data persistence via JSInterop
 
 ## Project Structure
+
+### Current Architecture
+
+```
+CombatTracker/
+├── CombatTracker.WebAssembly/       # Main Blazor WebAssembly application
+│   ├── Components/
+│   │   ├── Pages/                   # Page components (Home, PartyManagement, CombatSetup, CombatTrackerPage, DataManagement)
+│   │   ├── Layout/                  # Layout components (MainLayout, NavMenu)
+│   │   └── Shared/                  # Reusable components (LoadingSpinner, ToastNotification, KeyboardShortcutsHelp)
+│   ├── Services/                    # Business logic services
+│   │   ├── PartyStateService        # Party and character management
+│   │   ├── CombatStateService       # Combat state and logic
+│   │   ├── StorageStateService      # Coordinates data persistence
+│   │   ├── LocalStorageService      # JSInterop for browser localStorage
+│   │   └── KeyboardShortcutService  # Keyboard navigation
+│   ├── Models/                      # Data models (Party, Character, Monster, Combat, CombatantInstance)
+│   └── wwwroot/
+│       ├── css/theme.css            # Custom D&D-themed CSS
+│       └── js/keyboard-shortcuts.js # Keyboard shortcut handling
+├── CombatTracker.WebAssembly.Tests/ # Component and unit tests (bUnit + xUnit)
+├── CombatTracker.AppHost/           # .NET Aspire orchestration
+├── CombatTracker.ApiService/        # API for AI features (future)
+├── CombatTracker.ServiceDefaults/   # Shared configurations
+└── CombatTracker.Web/               # Legacy Blazor Server (deprecated, kept for reference)
+```
 
 ### Core Entities
 
@@ -53,10 +80,43 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 
 ### Key Features
 
-1. **Party Management**: Create, edit, delete party members with client-side state and localStorage persistence
-2. **Combat Setup**: Start combat with party selection, monster addition, and initiative rolling through Blazor forms
-3. **Combat Tracking**: Initiative order management, turn progression, HP tracking with real-time UI updates via Blazor's client-side state management
-4. **AI-Assisted Features** (planned):
+1. **Party Management**: 
+   - Create, edit, delete parties and characters
+   - Client-side state with localStorage persistence
+   - Seed test party with pre-configured characters
+   - Export/import party data as JSON
+
+2. **Combat Setup**: 
+   - Select party for combat
+   - Add monsters (single or multiple instances)
+   - Roll initiative for all combatants or individually
+   - Start combat with initiative order
+
+3. **Combat Tracking**: 
+   - Initiative order management with visual current turn indicator
+   - Turn progression (next/previous)
+   - HP tracking with damage and healing modals
+   - Status management (Alive, Unconscious, Dead)
+   - HP bar visualizations with color-coded health states
+   - Combat log with color-coded entries
+   - Keyboard shortcuts for quick actions (N, P, D, H, Escape)
+
+4. **Data Management**:
+   - Export all data (parties, combat state) to JSON file
+   - Import data from JSON file
+   - Clear all stored data with confirmation
+   - View current storage statistics
+
+5. **UI/UX Enhancements**:
+   - Custom D&D-themed design with Cinzel/Lora fonts
+   - Responsive layout with Bootstrap 5
+   - Keyboard shortcuts with help modal (?)
+   - Loading spinner for async operations
+   - Toast notifications for user feedback
+   - WCAG 2.1 AA accessibility compliance
+   - CSS animations (fade-in, slide-in, hover effects, pulse animation)
+
+6. **AI-Assisted Features** (planned):
    - Statblock parsing: Extract monster data from pasted text using HTTP calls to API service
    - Combat narration: Generate immersive descriptions for attack outcomes
 
@@ -95,10 +155,13 @@ This project is a **D&D Combat Tracker** web application designed to manage and 
 - Write unit tests for all new features and bug fixes using xUnit
 - Test AI integration endpoints with mock HTTP responses
 - Test combat logic thoroughly (initiative order, turn progression, HP changes)
-- Test data persistence with localStorage mocking
-- Use Moq for mocking dependencies
-- Use bUnit for Blazor component testing
+- Test data persistence with localStorage mocking via MockJSRuntime
+- Use Moq for mocking dependencies (IJSRuntime, services)
+- Use bUnit for Blazor component testing (currently 121 tests passing)
+- Test keyboard shortcuts with graceful initialization failure handling
+- Test UI components (LoadingSpinner, ToastNotification, KeyboardShortcutsHelp)
 - Aim for high code coverage on business logic and services
+- Run tests with: `dotnet test` (all) or `dotnet test CombatTracker.WebAssembly.Tests` (WebAssembly only)
 
 ## Security Practices
 
@@ -134,6 +197,18 @@ When working with D&D mechanics:
 - Common statuses: alive, unconscious, dead
 - Future enhancements may include conditions (poisoned, stunned, etc.)
 
+## Migration Notes
+
+The project has been migrated from **Blazor Server** to **Blazor WebAssembly** for improved scalability and client-side performance. Key changes:
+
+- **No `@rendermode` directives**: WebAssembly components run client-side by default
+- **Program.cs**: Uses `WebAssemblyHostBuilder` instead of `WebApplication.CreateBuilder`
+- **Service Registration**: All services registered with `builder.Services` in WebAssembly host
+- **Error Handling**: Updated `Error.razor` to work without HttpContext
+- **State Persistence**: Continues to use browser localStorage via JSInterop (no changes needed)
+
+See `MIGRATION.md` for detailed migration guide and `COMPLETION_SUMMARY.md` for full migration report.
+
 ## Future Enhancements
 
 Consider these planned features when designing:
@@ -145,3 +220,4 @@ Consider these planned features when designing:
 - Export combat log to text or JSON format
 - Progressive Web App (PWA) support for offline functionality
 - Service worker for background sync and caching
+- Multi-language support for internationalization
