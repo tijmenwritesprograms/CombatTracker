@@ -18,6 +18,7 @@ public class CombatTrackerPageTests : TestContext
         // Arrange
         Services.AddSingleton<PartyStateService>();
         Services.AddSingleton<CombatStateService>();
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         // Act
         var cut = RenderComponent<CombatTrackerPage>();
@@ -33,6 +34,7 @@ public class CombatTrackerPageTests : TestContext
         // Arrange
         Services.AddSingleton<PartyStateService>();
         Services.AddSingleton<CombatStateService>();
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         // Act
         var cut = RenderComponent<CombatTrackerPage>();
@@ -67,6 +69,7 @@ public class CombatTrackerPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         // Act
         var cut = RenderComponent<CombatTrackerPage>();
@@ -103,6 +106,7 @@ public class CombatTrackerPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         // Act
         var cut = RenderComponent<CombatTrackerPage>();
@@ -143,6 +147,7 @@ public class CombatTrackerPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         // Act
         var cut = RenderComponent<CombatTrackerPage>();
@@ -181,6 +186,7 @@ public class CombatTrackerPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         var cut = RenderComponent<CombatTrackerPage>();
 
@@ -219,6 +225,7 @@ public class CombatTrackerPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         var cut = RenderComponent<CombatTrackerPage>();
 
@@ -244,6 +251,7 @@ public class CombatTrackerPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
 
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character
@@ -314,6 +322,7 @@ public class CombatTrackerPageTests : TestContext
         
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        Services.AddSingleton(TestHelpers.CreateMockKeyboardShortcutService());
         
         var party = partyService.CreateParty("Test Party");
         partyService.AddCharacter(party.Id, new Character

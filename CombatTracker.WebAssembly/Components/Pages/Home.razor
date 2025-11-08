@@ -2,55 +2,91 @@
 
 <PageTitle>D&D Combat Tracker</PageTitle>
 
-<h1>D&D Combat Tracker</h1>
+<div class="fade-in">
+    <h1>D&D Combat Tracker</h1>
 
-<div class="mb-4">
-    <p class="lead">Welcome to your combat management companion for Dungeons &amp; Dragons!</p>
-    <p>This application helps Dungeon Masters track initiative, manage combat encounters, and organize party information.</p>
-</div>
-
-<div class="row mt-5">
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <span class="bi bi-people-fill me-2"></span>
-                    Party Management
-                </h5>
-                <p class="card-text">Create and manage your adventuring party. Track character stats, HP, AC, and initiative modifiers.</p>
-                <a href="party-management" class="btn btn-primary">Manage Party</a>
-            </div>
-        </div>
+    <div class="mb-4">
+        <p class="lead">Welcome to your combat management companion for Dungeons &amp; Dragons!</p>
+        <p>This application helps Dungeon Masters track initiative, manage combat encounters, and organize party information.</p>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <span class="bi bi-sword-fill me-2"></span>
-                    Combat Setup
-                </h5>
-                <p class="card-text">Start a new combat encounter. Add monsters, roll initiative, and begin tracking the battle.</p>
-                <a href="combat-setup" class="btn btn-primary">Setup Combat</a>
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 hover-lift" role="article">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <span class="bi bi-people-fill feature-icon"></span>
+                    </div>
+                    <h5 class="card-title">
+                        Party Management
+                    </h5>
+                    <p class="card-text">Create and manage your adventuring party. Track character stats, HP, AC, and initiative modifiers.</p>
+                    <a href="party-management" class="btn btn-primary stretched-link" aria-label="Go to Party Management">Manage Party</a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <span class="bi bi-info-circle-fill me-2"></span>
-                    About
-                </h5>
-                <p class="card-text">Learn more about the features and capabilities of the D&amp;D Combat Tracker application.</p>
-                <a href="https://github.com/tijmenwritesprograms/CombatTracker" target="_blank" class="btn btn-secondary">View Documentation</a>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 hover-lift" role="article">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <span class="bi bi-sword-fill feature-icon"></span>
+                    </div>
+                    <h5 class="card-title">
+                        Combat Setup
+                    </h5>
+                    <p class="card-text">Start a new combat encounter. Add monsters, roll initiative, and begin tracking the battle.</p>
+                    <a href="combat-setup" class="btn btn-primary stretched-link" aria-label="Go to Combat Setup">Setup Combat</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 hover-lift" role="article">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <span class="bi bi-info-circle-fill feature-icon"></span>
+                    </div>
+                    <h5 class="card-title">
+                        About
+                    </h5>
+                    <p class="card-text">Learn more about the features and capabilities of the D&amp;D Combat Tracker application.</p>
+                    <a href="https://github.com/tijmenwritesprograms/CombatTracker" target="_blank" rel="noopener noreferrer" class="btn btn-secondary stretched-link" aria-label="View Documentation on GitHub">View Documentation</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
+    .feature-icon {
+        display: inline-block;
+        width: 4rem;
+        height: 4rem;
+        background-size: cover;
+        vertical-align: middle;
+        color: var(--primary-color);
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .card .stretched-link::after {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        content: "";
+    }
+
     .bi {
         display: inline-block;
         width: 1.25rem;
