@@ -1,0 +1,277 @@
+@* Monster Statblock Display Component *@
+@using CombatTracker.WebAssembly.Models
+
+@if (Monster == null)
+{
+    <p class="text-muted">No monster data available.</p>
+}
+else
+{
+    <div class="statblock-display">
+        <!-- Header -->
+        <div class="statblock-header mb-3">
+            <h3 class="monster-name mb-1">@Monster.Name</h3>
+            <p class="text-muted mb-0">
+                @Monster.Size @Monster.Type@(string.IsNullOrEmpty(Monster.Subtype) ? "" : $" ({Monster.Subtype})")@(!string.IsNullOrEmpty(Monster.Alignment) ? $", {Monster.Alignment}" : "")
+            </p>
+        </div>
+
+        <hr class="statblock-divider" />
+
+        <!-- Defense -->
+        <div class="statblock-section mb-3">
+            <p class="mb-1">
+                <strong>Armor Class</strong> @Monster.AC@(string.IsNullOrEmpty(Monster.ArmorType) ? "" : $" ({Monster.ArmorType})")
+            </p>
+            <p class="mb-1">
+                <strong>Hit Points</strong> @Monster.Hp@(string.IsNullOrEmpty(Monster.HpFormula) ? "" : $" ({Monster.HpFormula})")
+            </p>
+            <p class="mb-1">
+                <strong>Speed</strong> @Monster.Speed ft.@(Monster.FlySpeed > 0 ? $", fly {Monster.FlySpeed} ft." : "")@(Monster.SwimSpeed > 0 ? $", swim {Monster.SwimSpeed} ft." : "")@(Monster.ClimbSpeed > 0 ? $", climb {Monster.ClimbSpeed} ft." : "")@(Monster.BurrowSpeed > 0 ? $", burrow {Monster.BurrowSpeed} ft." : "")
+            </p>
+        </div>
+
+        <hr class="statblock-divider" />
+
+        <!-- Ability Scores -->
+        <div class="statblock-section mb-3">
+            <div class="row text-center">
+                <div class="col-2">
+                    <strong>STR</strong><br />
+                    @Monster.Abilities.Strength (@FormatModifier(Monster.Abilities.StrengthModifier))
+                </div>
+                <div class="col-2">
+                    <strong>DEX</strong><br />
+                    @Monster.Abilities.Dexterity (@FormatModifier(Monster.Abilities.DexterityModifier))
+                </div>
+                <div class="col-2">
+                    <strong>CON</strong><br />
+                    @Monster.Abilities.Constitution (@FormatModifier(Monster.Abilities.ConstitutionModifier))
+                </div>
+                <div class="col-2">
+                    <strong>INT</strong><br />
+                    @Monster.Abilities.Intelligence (@FormatModifier(Monster.Abilities.IntelligenceModifier))
+                </div>
+                <div class="col-2">
+                    <strong>WIS</strong><br />
+                    @Monster.Abilities.Wisdom (@FormatModifier(Monster.Abilities.WisdomModifier))
+                </div>
+                <div class="col-2">
+                    <strong>CHA</strong><br />
+                    @Monster.Abilities.Charisma (@FormatModifier(Monster.Abilities.CharismaModifier))
+                </div>
+            </div>
+        </div>
+
+        <hr class="statblock-divider" />
+
+        <!-- Proficiencies and Resistances -->
+        <div class="statblock-section mb-3">
+            @if (!string.IsNullOrEmpty(Monster.SavingThrows))
+            {
+                <p class="mb-1"><strong>Saving Throws</strong> @Monster.SavingThrows</p>
+            }
+            @if (!string.IsNullOrEmpty(Monster.Skills))
+            {
+                <p class="mb-1"><strong>Skills</strong> @Monster.Skills</p>
+            }
+            @if (!string.IsNullOrEmpty(Monster.Vulnerabilities))
+            {
+                <p class="mb-1"><strong>Damage Vulnerabilities</strong> @Monster.Vulnerabilities</p>
+            }
+            @if (!string.IsNullOrEmpty(Monster.Resistances))
+            {
+                <p class="mb-1"><strong>Damage Resistances</strong> @Monster.Resistances</p>
+            }
+            @if (!string.IsNullOrEmpty(Monster.Immunities))
+            {
+                <p class="mb-1"><strong>Damage Immunities</strong> @Monster.Immunities</p>
+            }
+            @if (!string.IsNullOrEmpty(Monster.ConditionImmunities))
+            {
+                <p class="mb-1"><strong>Condition Immunities</strong> @Monster.ConditionImmunities</p>
+            }
+            @if (!string.IsNullOrEmpty(Monster.Senses))
+            {
+                <p class="mb-1"><strong>Senses</strong> @Monster.Senses</p>
+            }
+            @if (!string.IsNullOrEmpty(Monster.Languages))
+            {
+                <p class="mb-1"><strong>Languages</strong> @Monster.Languages</p>
+            }
+            <p class="mb-1">
+                <strong>Challenge</strong> @Monster.ChallengeRating (@Monster.ExperiencePoints XP) &nbsp;&nbsp;
+                <strong>Proficiency Bonus</strong> @FormatModifier(Monster.ProficiencyBonus)
+            </p>
+        </div>
+
+        @if (Monster.Traits.Any())
+        {
+            <hr class="statblock-divider" />
+            
+            <!-- Traits -->
+            <div class="statblock-section mb-3">
+                @foreach (var trait in Monster.Traits)
+                {
+                    <div class="trait mb-2">
+                        <p class="mb-1">
+                            <strong class="trait-name">@trait.Name.</strong> @trait.Description
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Monster.Actions.Any())
+        {
+            <hr class="statblock-divider" />
+            
+            <!-- Actions -->
+            <div class="statblock-section mb-3">
+                <h5 class="section-title text-danger mb-2">Actions</h5>
+                @foreach (var action in Monster.Actions)
+                {
+                    <div class="action mb-2">
+                        <p class="mb-1">
+                            <strong class="action-name">@action.Name.</strong> @action.Description
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Monster.BonusActions.Any())
+        {
+            <hr class="statblock-divider" />
+            
+            <!-- Bonus Actions -->
+            <div class="statblock-section mb-3">
+                <h5 class="section-title text-warning mb-2">Bonus Actions</h5>
+                @foreach (var action in Monster.BonusActions)
+                {
+                    <div class="action mb-2">
+                        <p class="mb-1">
+                            <strong class="action-name">@action.Name.</strong> @action.Description
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Monster.Reactions.Any())
+        {
+            <hr class="statblock-divider" />
+            
+            <!-- Reactions -->
+            <div class="statblock-section mb-3">
+                <h5 class="section-title text-info mb-2">Reactions</h5>
+                @foreach (var action in Monster.Reactions)
+                {
+                    <div class="action mb-2">
+                        <p class="mb-1">
+                            <strong class="action-name">@action.Name.</strong> @action.Description
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Monster.LegendaryActions.Any())
+        {
+            <hr class="statblock-divider" />
+            
+            <!-- Legendary Actions -->
+            <div class="statblock-section mb-3">
+                <h5 class="section-title text-primary mb-2">Legendary Actions</h5>
+                <p class="mb-2 text-muted">
+                    The @Monster.Name can take @Monster.LegendaryActionsPerRound legendary action@(Monster.LegendaryActionsPerRound != 1 ? "s" : ""), 
+                    choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature's turn. 
+                    The @Monster.Name regains spent legendary actions at the start of its turn.
+                </p>
+                @foreach (var action in Monster.LegendaryActions)
+                {
+                    <div class="action mb-2">
+                        <p class="mb-1">
+                            <strong class="action-name">@action.Name@(action.LegendaryActionCost > 1 ? $" (Costs {action.LegendaryActionCost} Actions)" : "").</strong> @action.Description
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Monster.LairActions.Any())
+        {
+            <hr class="statblock-divider" />
+            
+            <!-- Lair Actions -->
+            <div class="statblock-section mb-3">
+                <h5 class="section-title text-success mb-2">Lair Actions</h5>
+                @foreach (var action in Monster.LairActions)
+                {
+                    <div class="action mb-2">
+                        <p class="mb-1">
+                            <strong class="action-name">@action.Name.</strong> @action.Description
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .statblock-display {
+        font-family: 'Lora', Georgia, serif;
+        color: #333;
+    }
+
+    .monster-name {
+        font-family: 'Cinzel', serif;
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    .statblock-divider {
+        border: none;
+        height: 2px;
+        background: linear-gradient(to right, var(--primary-color), transparent);
+        margin: 0.75rem 0;
+    }
+
+    .statblock-section p {
+        margin-bottom: 0.5rem;
+    }
+
+    .statblock-section strong {
+        color: var(--secondary-color);
+    }
+
+    .section-title {
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--primary-color);
+        padding-bottom: 0.25rem;
+    }
+
+    .trait-name,
+    .action-name {
+        font-style: italic;
+        color: var(--primary-color);
+    }
+
+    .action,
+    .trait {
+        text-align: justify;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public Monster? Monster { get; set; }
+
+    private string FormatModifier(int modifier)
+    {
+        return modifier >= 0 ? $"+{modifier}" : modifier.ToString();
+    }
+}

@@ -30,6 +30,13 @@ public class CombatStateService
     public IReadOnlyList<Monster> GetMonsters() => _monsters.AsReadOnly();
 
     /// <summary>
+    /// Gets a monster by its ID.
+    /// </summary>
+    /// <param name="monsterId">The ID of the monster to retrieve.</param>
+    /// <returns>The monster with the specified ID, or null if not found.</returns>
+    public Monster? GetMonsterById(int monsterId) => _monsters.FirstOrDefault(m => m.Id == monsterId);
+
+    /// <summary>
     /// Gets all combatants (party members + monsters) with their initiative values.
     /// </summary>
     public Dictionary<string, CombatantSetupData> Combatants { get; private set; } = new();
