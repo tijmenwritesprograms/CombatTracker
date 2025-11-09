@@ -12,7 +12,7 @@
 
     <div class="row mt-5">
         <div class="col-md-4 mb-4">
-            <div class="card h-100 hover-lift" role="article">
+            <div class="card h-100" role="article">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <span class="bi bi-people-fill feature-icon"></span>
@@ -27,7 +27,7 @@
         </div>
 
         <div class="col-md-4 mb-4">
-            <div class="card h-100 hover-lift" role="article">
+            <div class="card h-100" role="article">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <span class="bi bi-sword-fill feature-icon"></span>
@@ -42,7 +42,7 @@
         </div>
 
         <div class="col-md-4 mb-4">
-            <div class="card h-100 hover-lift" role="article">
+            <div class="card h-100" role="article">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <span class="bi bi-info-circle-fill feature-icon"></span>
@@ -57,53 +57,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    .feature-icon {
-        display: inline-block;
-        width: 4rem;
-        height: 4rem;
-        background-size: cover;
-        vertical-align: middle;
-        color: var(--primary-color);
-    }
-
-    .hover-lift {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .hover-lift:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    .card .stretched-link::after {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 1;
-        content: "";
-    }
-
-    .bi {
-        display: inline-block;
-        width: 1.25rem;
-        height: 1.25rem;
-        background-size: cover;
-        vertical-align: middle;
-    }
-
-    .bi-people-fill {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-people-fill' viewBox='0 0 16 16'%3E%3Cpath d='M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/%3E%3C/svg%3E");
-    }
-
-    .bi-sword-fill {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath d='M14.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 .5-.5h13zm-1 1H2v12h11.5V2zm-9.854 9.146a.5.5 0 0 0 .708.708l2-2a.5.5 0 0 0-.708-.708l-2 2zm2-7a.5.5 0 1 0 .708.708l5 5a.5.5 0 0 0 .708-.708l-5-5zm1.646 5.646a.5.5 0 0 0 0 .708l1 1a.5.5 0 0 0 .708-.708l-1-1a.5.5 0 0 0-.708 0z'/%3E%3C/svg%3E");
-    }
-
-    .bi-info-circle-fill {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-info-circle-fill' viewBox='0 0 16 16'%3E%3Cpath d='M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z'/%3E%3C/svg%3E");
-    }
-</style>

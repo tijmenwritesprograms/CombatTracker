@@ -1,0 +1,19 @@
+.monster-name-link {
+    cursor: pointer;
+    color: var(--bs-danger);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.monster-name-link:hover {
+    color: var(--bs-danger);
+    text-decoration: underline;
+}
+
+.monster-quick-reference {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+.monster-quick-reference .card {
+    border-color: var(--bs-danger);
+}
