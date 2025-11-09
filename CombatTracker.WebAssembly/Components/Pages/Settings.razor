@@ -1,0 +1,244 @@
+@page "/settings"
+@implements IDisposable
+
+@using CombatTracker.WebAssembly.Services
+@inject IApiKeyService ApiKeyService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Settings - D&D Combat Tracker</PageTitle>
+
+<h1>Settings</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h4>AI Configuration</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Configure your OpenAI API key to enable AI-powered statblock parsing.
+                    Your API key is stored securely in your browser and never sent to our servers.
+                </p>
+
+                <div class="mb-3">
+                    <label for="openaiApiKey" class="form-label">OpenAI API Key</label>
+                    <div class="input-group">
+                        <input 
+                            type="@(showApiKey ? "text" : "password")" 
+                            class="form-control" 
+                            id="openaiApiKey" 
+                            @bind="apiKeyInput"
+                            placeholder="sk-..." />
+                        <button 
+                            class="btn btn-outline-secondary" 
+                            type="button" 
+                            @onclick="ToggleApiKeyVisibility">
+                            <i class="bi @(showApiKey ? "bi-eye-slash" : "bi-eye")"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>.
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" @onclick="SaveApiKey" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        Save API Key
+                    </button>
+                    
+                    @if (hasExistingKey)
+                    {
+                        <button class="btn btn-outline-danger" @onclick="ClearApiKey" disabled="@isSaving">
+                            Clear API Key
+                        </button>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(saveMessage))
+                {
+                    <div class="alert @(saveSuccess ? "alert-success" : "alert-danger") mt-3" role="alert">
+                        @saveMessage
+                    </div>
+                }
+
+                @if (hasExistingKey)
+                {
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="bi bi-check-circle-fill"></i> API key is configured
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h4>About Statblock Parsing</h4>
+            </div>
+            <div class="card-body">
+                <p>
+                    The AI statblock parser uses OpenAI's GPT models to extract structured data from D&D 5e monster statblocks.
+                    Simply paste a monster statblock, and the AI will automatically parse:
+                </p>
+                <ul>
+                    <li>Basic info (name, size, type, alignment)</li>
+                    <li>Defense stats (AC, HP)</li>
+                    <li>Ability scores (STR, DEX, CON, INT, WIS, CHA)</li>
+                    <li>Skills, saving throws, and resistances</li>
+                    <li>Special traits and abilities</li>
+                    <li>Actions, reactions, and legendary actions</li>
+                </ul>
+                <p class="mb-0">
+                    <strong>Note:</strong> Always review parsed data before adding monsters to combat.
+                    The AI may occasionally make mistakes or miss details.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h4>Privacy & Security</h4>
+            </div>
+            <div class="card-body">
+                <h6>Your Data is Safe</h6>
+                <p class="small">
+                    <i class="bi bi-shield-check text-success"></i> Your API key is stored only in your browser's local storage.
+                </p>
+                <p class="small">
+                    <i class="bi bi-shield-check text-success"></i> API calls are made directly from your browser to OpenAI.
+                </p>
+                <p class="small mb-0">
+                    <i class="bi bi-shield-check text-success"></i> No data is sent to our servers.
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4>API Usage</h4>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    Statblock parsing uses the <strong>gpt-4o-mini</strong> model, which is cost-effective
+                    (approximately $0.0015 per request). 
+                </p>
+                <p class="small mb-0">
+                    You can monitor your usage and set spending limits in your
+                    <a href="https://platform.openai.com/usage" target="_blank">OpenAI dashboard</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string apiKeyInput = string.Empty;
+    private bool showApiKey = false;
+    private bool hasExistingKey = false;
+    private bool isSaving = false;
+    private string? saveMessage;
+    private bool saveSuccess = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ApiKeyService.InitializeAsync();
+            hasExistingKey = await ApiKeyService.HasOpenAIApiKeyAsync();
+            if (hasExistingKey)
+            {
+                // Show masked placeholder if key exists
+                apiKeyInput = "••••••••••••••••••••••••••••••••";
+            }
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        ApiKeyService.OnChange += HandleApiKeyChange;
+    }
+
+    private void HandleApiKeyChange()
+    {
+        StateHasChanged();
+    }
+
+    private void ToggleApiKeyVisibility()
+    {
+        showApiKey = !showApiKey;
+    }
+
+    private async Task SaveApiKey()
+    {
+        if (string.IsNullOrWhiteSpace(apiKeyInput) || apiKeyInput.Contains("•"))
+        {
+            saveMessage = "Please enter a valid API key.";
+            saveSuccess = false;
+            return;
+        }
+
+        isSaving = true;
+        saveMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            await ApiKeyService.SetOpenAIApiKeyAsync(apiKeyInput);
+            hasExistingKey = true;
+            saveMessage = "API key saved successfully!";
+            saveSuccess = true;
+            
+            // Mask the input after saving
+            apiKeyInput = "••••••••••••••••••••••••••••••••";
+            showApiKey = false;
+        }
+        catch (Exception ex)
+        {
+            saveMessage = $"Failed to save API key: {ex.Message}";
+            saveSuccess = false;
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ClearApiKey()
+    {
+        isSaving = true;
+        saveMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            await ApiKeyService.SetOpenAIApiKeyAsync(null);
+            hasExistingKey = false;
+            apiKeyInput = string.Empty;
+            saveMessage = "API key cleared successfully.";
+            saveSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            saveMessage = $"Failed to clear API key: {ex.Message}";
+            saveSuccess = false;
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        ApiKeyService.OnChange -= HandleApiKeyChange;
+    }
+}

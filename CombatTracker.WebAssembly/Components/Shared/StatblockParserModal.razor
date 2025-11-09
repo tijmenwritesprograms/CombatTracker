@@ -1,0 +1,304 @@
+@using CombatTracker.WebAssembly.Models
+@using CombatTracker.WebAssembly.Services
+@inject IStatblockParserService StatblockParser
+@inject IApiKeyService ApiKeyService
+@inject NavigationManager NavigationManager
+
+<!-- Modal backdrop -->
+@if (IsOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-magic"></i> Parse Monster Statblock
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="Close" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!hasApiKey)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <strong>API Key Required</strong>
+                            <p class="mb-2">You need to configure your OpenAI API key to use statblock parsing.</p>
+                            <button class="btn btn-sm btn-primary" @onclick="GoToSettings">
+                                Go to Settings
+                            </button>
+                        </div>
+                    }
+                    else if (!isParsing && ParsedMonster == null)
+                    {
+                        <!-- Input Stage -->
+                        <div class="mb-3">
+                            <label for="statblockInput" class="form-label">
+                                Paste D&D 5e Monster Statblock
+                            </label>
+                            <textarea 
+                                id="statblockInput" 
+                                class="form-control font-monospace" 
+                                rows="15" 
+                                @bind="statblockInput"
+                                placeholder="Example:
+
+Orc
+Medium humanoid (orc), chaotic evil
+
+Armor Class 13 (hide armor)
+Hit Points 15 (2d8 + 6)
+Speed 30 ft.
+
+STR DEX CON INT WIS CHA
+16 (+3) 12 (+1) 16 (+3) 7 (-2) 11 (+0) 10 (+0)
+
+Skills Intimidation +2
+Senses darkvision 60 ft., passive Perception 10
+Languages Common, Orc
+Challenge 1/2 (100 XP)
+
+Aggressive. As a bonus action, the orc can move up to its speed toward a hostile creature that it can see.
+
+ACTIONS
+
+Greataxe. Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 9 (1d12 + 3) slashing damage.
+
+Javelin. Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 6 (1d6 + 3) piercing damage."></textarea>
+                            <div class="form-text">
+                                Paste the complete statblock text from any D&D 5e source.
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                                <strong>Parsing Failed</strong>
+                                <p class="mb-0">@errorMessage</p>
+                            </div>
+                        }
+                    }
+                    else if (isParsing)
+                    {
+                        <!-- Parsing in Progress -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Parsing...</span>
+                            </div>
+                            <h5>Parsing Statblock with AI...</h5>
+                            <p class="text-muted">This may take a few seconds</p>
+                        </div>
+                    }
+                    else if (ParsedMonster != null)
+                    {
+                        <!-- Preview Stage -->
+                        <div class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <strong>Statblock Parsed Successfully!</strong>
+                            <p class="mb-0">Review the parsed data below and make any necessary corrections before adding to combat.</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" @bind="ParsedMonster.Name" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Size</label>
+                                <input type="text" class="form-control" @bind="ParsedMonster.Size" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Type</label>
+                                <input type="text" class="form-control" @bind="ParsedMonster.Type" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">HP</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.Hp" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">AC</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.AC" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Initiative Modifier</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.InitiativeModifier" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">STR</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.Abilities.Strength" />
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">DEX</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.Abilities.Dexterity" />
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">CON</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.Abilities.Constitution" />
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">INT</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.Abilities.Intelligence" />
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">WIS</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.Abilities.Wisdom" />
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">CHA</label>
+                                <input type="number" class="form-control" @bind="ParsedMonster.Abilities.Charisma" />
+                            </div>
+                        </div>
+
+                        @if (ParsedMonster.Traits.Count > 0)
+                        {
+                            <h6 class="mt-3">Traits (@ParsedMonster.Traits.Count)</h6>
+                            <div class="list-group mb-3">
+                                @foreach (var trait in ParsedMonster.Traits)
+                                {
+                                    <div class="list-group-item">
+                                        <strong>@trait.Name</strong>
+                                        <p class="mb-0 small">@trait.Description</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (ParsedMonster.Actions.Count > 0)
+                        {
+                            <h6 class="mt-3">Actions (@ParsedMonster.Actions.Count)</h6>
+                            <div class="list-group mb-3">
+                                @foreach (var action in ParsedMonster.Actions)
+                                {
+                                    <div class="list-group-item">
+                                        <strong>@action.Name</strong>
+                                        <p class="mb-0 small">@action.Description</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="modal-footer">
+                    @if (!isParsing && ParsedMonster == null)
+                    {
+                        <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                        <button type="button" class="btn btn-primary" @onclick="ParseStatblock" disabled="@(!CanParse)">
+                            <i class="bi bi-magic"></i> Parse with AI
+                        </button>
+                    }
+                    else if (ParsedMonster != null)
+                    {
+                        <button type="button" class="btn btn-secondary" @onclick="ResetParser">
+                            <i class="bi bi-arrow-left"></i> Parse Another
+                        </button>
+                        <button type="button" class="btn btn-primary" @onclick="ConfirmAndAdd">
+                            <i class="bi bi-plus-circle"></i> Add to Combat
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<Monster> OnMonsterParsed { get; set; }
+
+    private string statblockInput = string.Empty;
+    private bool isParsing = false;
+    private bool hasApiKey = false;
+    private string? errorMessage;
+    
+    public Monster? ParsedMonster { get; private set; }
+
+    private bool CanParse => hasApiKey && !string.IsNullOrWhiteSpace(statblockInput) && !isParsing;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsOpen && !hasApiKey)
+        {
+            await ApiKeyService.InitializeAsync();
+            hasApiKey = await ApiKeyService.HasOpenAIApiKeyAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ParseStatblock()
+    {
+        if (string.IsNullOrWhiteSpace(statblockInput))
+        {
+            return;
+        }
+
+        isParsing = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            ParsedMonster = await StatblockParser.ParseStatblockAsync(statblockInput);
+            
+            if (ParsedMonster == null)
+            {
+                errorMessage = "Failed to parse statblock. Please check the format and try again.";
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Network error: {ex.Message}. Please check your internet connection and API key.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Unexpected error: {ex.Message}";
+        }
+        finally
+        {
+            isParsing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmAndAdd()
+    {
+        if (ParsedMonster != null)
+        {
+            await OnMonsterParsed.InvokeAsync(ParsedMonster);
+            await Close();
+        }
+    }
+
+    private void ResetParser()
+    {
+        ParsedMonster = null;
+        statblockInput = string.Empty;
+        errorMessage = null;
+    }
+
+    private async Task Close()
+    {
+        ResetParser();
+        await OnClose.InvokeAsync();
+    }
+
+    private void GoToSettings()
+    {
+        NavigationManager.NavigateTo("/settings");
+    }
+}

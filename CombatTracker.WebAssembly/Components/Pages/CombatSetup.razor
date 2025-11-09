@@ -45,6 +45,19 @@
                 <h4>Add Monster</h4>
             </div>
             <div class="card-body">
+                <div class="mb-3">
+                    <button type="button" class="btn btn-success w-100" @onclick="OpenStatblockParser">
+                        <i class="bi bi-magic"></i> Parse Statblock with AI
+                    </button>
+                    <div class="form-text text-center">
+                        Automatically extract monster data from D&D 5e statblocks
+                    </div>
+                </div>
+
+                <div class="text-center mb-3">
+                    <small class="text-muted">— OR —</small>
+                </div>
+
                 <EditForm Model="@newMonster" OnValidSubmit="@HandleAddMonster">
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" />
@@ -174,11 +187,17 @@
     </div>
 </div>
 
+<StatblockParserModal 
+    IsOpen="@isStatblockParserOpen" 
+    OnClose="@CloseStatblockParser" 
+    OnMonsterParsed="@HandleMonsterParsed" />
+
 @code {
     private List<Party> parties = new();
     private Dictionary<string, CombatantSetupData> combatants = new();
     private Monster newMonster = new() { Type = "Humanoid" };
     private bool canStartCombat => CombatStateService.IsValidForCombat();
+    private bool isStatblockParserOpen = false;
 
     private void AddOrcTestMonster()
     {
@@ -347,6 +366,22 @@
     {
         combatants = CombatStateService.Combatants;
         StateHasChanged();
+    }
+
+    private void OpenStatblockParser()
+    {
+        isStatblockParserOpen = true;
+    }
+
+    private void CloseStatblockParser()
+    {
+        isStatblockParserOpen = false;
+    }
+
+    private void HandleMonsterParsed(Monster monster)
+    {
+        CombatStateService.AddMonster(monster);
+        RefreshCombatants();
     }
 
     public void Dispose()
