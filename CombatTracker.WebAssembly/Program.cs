@@ -28,6 +28,12 @@ builder.Services.AddScoped<StorageStateService>();
 // Add keyboard shortcut service for keyboard navigation
 builder.Services.AddScoped<KeyboardShortcutService>();
 
+// Add API key service for managing OpenAI API keys
+builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+
+// Add statblock parser service for AI-powered monster parsing
+builder.Services.AddScoped<IStatblockParserService, OpenAIStatblockParserService>();
+
 // Add WeatherApiClient (if needed for API service integration)
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
 {

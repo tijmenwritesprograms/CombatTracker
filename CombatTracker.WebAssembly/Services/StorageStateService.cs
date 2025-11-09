@@ -14,6 +14,7 @@ public class StorageStateService
 
     private const string PartiesKey = "combattracker_parties";
     private const string CombatStateKey = "combattracker_combat_state";
+    private const string SavedMonstersKey = "combattracker_saved_monsters";
     private const string StorageVersionKey = "combattracker_storage_version";
     private const int CurrentStorageVersion = 1;
 
@@ -78,6 +79,108 @@ public class StorageStateService
             _logger.LogError(ex, "Error loading party data");
             OnStorageOperation?.Invoke("Error loading party data", false);
             return null;
+        }
+    }
+
+    #endregion
+
+    #region Saved Monsters (Library)
+
+    /// <summary>
+    /// Loads saved monsters (user library) from localStorage.
+    /// </summary>
+    public async Task<List<Monster>> LoadSavedMonstersAsync()
+    {
+        try
+        {
+            var data = await _localStorage.GetItemAsync<List<Monster>>(SavedMonstersKey);
+            if (data != null)
+            {
+                OnStorageOperation?.Invoke("Saved monsters loaded", true);
+                return data;
+            }
+
+            return new List<Monster>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading saved monsters");
+            OnStorageOperation?.Invoke("Error loading saved monsters", false);
+            return new List<Monster>();
+        }
+    }
+
+    /// <summary>
+    /// Saves the given list of saved monsters to localStorage.
+    /// </summary>
+    public async Task<bool> SaveSavedMonstersAsync(List<Monster> monsters)
+    {
+        try
+        {
+            var success = await _localStorage.SetItemAsync(SavedMonstersKey, monsters);
+            OnStorageOperation?.Invoke("Saved monsters updated", success);
+            return success;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving saved monsters");
+            OnStorageOperation?.Invoke("Error saving saved monsters", false);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Adds a single monster to the saved-monsters library.
+    /// </summary>
+    public async Task<bool> AddSavedMonsterAsync(Monster monster)
+    {
+        try
+        {
+            var list = await LoadSavedMonstersAsync();
+
+            // Clone the monster before saving so later modifications (e.g. adding to combat) don't mutate library entries
+            var serialized = JsonSerializer.Serialize(monster);
+            var clone = JsonSerializer.Deserialize<Monster>(serialized) ?? monster;
+
+            // Ensure monster has an ID for identification in the library.
+            if (clone.Id == 0)
+            {
+                clone.Id = (int)(DateTime.UtcNow.Ticks % int.MaxValue);
+            }
+
+            list.Add(clone);
+            return await SaveSavedMonstersAsync(list);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding saved monster");
+            OnStorageOperation?.Invoke("Error adding saved monster", false);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Removes a saved monster from the library by id.
+    /// </summary>
+    public async Task<bool> RemoveSavedMonsterAsync(int monsterId)
+    {
+        try
+        {
+            var list = await LoadSavedMonstersAsync();
+            var toRemove = list.FirstOrDefault(m => m.Id == monsterId);
+            if (toRemove != null)
+            {
+                list.Remove(toRemove);
+                return await SaveSavedMonstersAsync(list);
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing saved monster");
+            OnStorageOperation?.Invoke("Error removing saved monster", false);
+            return false;
         }
     }
 

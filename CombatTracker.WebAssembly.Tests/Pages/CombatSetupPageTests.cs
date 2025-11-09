@@ -3,6 +3,8 @@ using CombatTracker.WebAssembly.Components.Pages;
 using CombatTracker.WebAssembly.Models;
 using CombatTracker.WebAssembly.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
 namespace CombatTracker.WebAssembly.Tests.Pages;
@@ -12,12 +14,36 @@ namespace CombatTracker.WebAssembly.Tests.Pages;
 /// </summary>
 public class CombatSetupPageTests : TestContext
 {
+    private void SetupServices()
+    {
+        // Mock services needed by StatblockParserModal (even if not rendered)
+        var mockApiKeyService = new Mock<IApiKeyService>();
+        mockApiKeyService.Setup(x => x.HasOpenAIApiKeyAsync()).ReturnsAsync(false);
+        Services.AddSingleton(mockApiKeyService.Object);
+
+        var mockParserService = new Mock<IStatblockParserService>();
+        mockParserService.Setup(x => x.IsConfiguredAsync()).ReturnsAsync(false);
+        Services.AddSingleton(mockParserService.Object);
+
+        // Mock StorageStateService dependencies
+        var mockLocalStorage = new Mock<ILocalStorageService>();
+        mockLocalStorage.Setup(x => x.SetItemAsync(It.IsAny<string>(), It.IsAny<object>())).ReturnsAsync(true);
+        Services.AddSingleton(mockLocalStorage.Object);
+
+        var mockStorageLogger = new Mock<ILogger<StorageStateService>>();
+        Services.AddSingleton(mockStorageLogger.Object);
+
+        // Add StorageStateService
+        Services.AddSingleton<StorageStateService>();
+    }
+
     [Fact]
     public void CombatSetup_ShouldRenderTitle()
     {
         // Arrange
         Services.AddSingleton<PartyStateService>();
         Services.AddSingleton<CombatStateService>();
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -33,6 +59,7 @@ public class CombatSetupPageTests : TestContext
         // Arrange
         Services.AddSingleton<PartyStateService>();
         Services.AddSingleton<CombatStateService>();
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -50,6 +77,7 @@ public class CombatSetupPageTests : TestContext
         partyService.CreateParty("Test Party");
         Services.AddSingleton(partyService);
         Services.AddSingleton<CombatStateService>();
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -66,6 +94,7 @@ public class CombatSetupPageTests : TestContext
         // Arrange
         Services.AddSingleton<PartyStateService>();
         Services.AddSingleton<CombatStateService>();
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -100,6 +129,7 @@ public class CombatSetupPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -116,6 +146,7 @@ public class CombatSetupPageTests : TestContext
         // Arrange
         Services.AddSingleton<PartyStateService>();
         Services.AddSingleton<CombatStateService>();
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -130,6 +161,7 @@ public class CombatSetupPageTests : TestContext
         // Arrange
         Services.AddSingleton<PartyStateService>();
         Services.AddSingleton<CombatStateService>();
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -161,6 +193,7 @@ public class CombatSetupPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -193,6 +226,7 @@ public class CombatSetupPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        SetupServices();
 
         // Act
         var cut = RenderComponent<CombatSetup>();
@@ -225,6 +259,7 @@ public class CombatSetupPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        SetupServices();
 
         var cut = RenderComponent<CombatSetup>();
 
@@ -265,6 +300,7 @@ public class CombatSetupPageTests : TestContext
 
         Services.AddSingleton(partyService);
         Services.AddSingleton(combatService);
+        SetupServices();
 
         var cut = RenderComponent<CombatSetup>();
 

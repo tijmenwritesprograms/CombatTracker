@@ -13,6 +13,17 @@ public class Monster
     public int Id { get; set; }
 
     /// <summary>
+    /// Group identifier for monsters that share characteristics (like initiative).
+    /// Monsters with the same GroupId are instances of the same creature type.
+    /// </summary>
+    public int? GroupId { get; set; }
+
+    /// <summary>
+    /// Instance number within a group (e.g., 1, 2, 3 for "Orc 1", "Orc 2", "Orc 3").
+    /// </summary>
+    public int? InstanceNumber { get; set; }
+
+    /// <summary>
     /// Name of the monster.
     /// </summary>
     [Required]

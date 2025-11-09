@@ -60,9 +60,22 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
   - Full validation on all fields using data annotations
   - Monsters can be removed individually from combatant list
   - Characters from selected party cannot be removed (deselect party instead)
-  - OR paste a full monster **statblock** into a textarea (future enhancement)
-  - App calls the **AI Statblock Parser (LLM)** to extract relevant fields (HP, AC, attacks, damage, etc.) and prefill monster data (future enhancement)
-  - Users can confirm or edit parsed data before adding (future enhancement)
+  - **AI Statblock Parsing (NEW):**
+    - Click "Parse Statblock with AI" button to open parsing modal
+    - Paste full D&D 5e monster statblock text into textarea
+    - AI automatically extracts all monster data including:
+      - Basic info (name, size, type, subtype, alignment)
+      - Defense stats (AC, armor type, HP, HP formula)
+      - Ability scores (STR, DEX, CON, INT, WIS, CHA)
+      - Movement speeds (walk, fly, swim, climb, burrow)
+      - Skills, saving throws, resistances, immunities
+      - Senses, languages, challenge rating
+      - Special traits and abilities
+      - Actions, bonus actions, reactions, legendary actions
+    - Preview parsed data with all fields editable before adding
+    - Users can review and modify any field before confirming
+    - Add to combat with a single click after review
+    - Error handling for parsing failures with user-friendly messages
 
 - **Initiative Management:**
   - All combatants displayed in table with name, type, HP, AC, and initiative modifier
@@ -140,19 +153,57 @@ The **D&D Combat Tracker** is a web application designed to manage and streamlin
 #### 3.4 AI-Assisted Features  
 
 ##### 3.4.1 Statblock Parsing  
-- **Input:** User pastes a full monster statblock (from official or homebrew source).  
+**Status: ✅ Implemented**
+
+- **Configuration:**
+  - Users configure OpenAI API key in Settings page
+  - API key stored securely in browser localStorage (never sent to our servers)
+  - Direct API calls from browser to OpenAI for maximum privacy
+  - Uses GPT-4o-mini model for cost-effective parsing (~$0.0015 per request)
+
+- **Access:**
+  - Click "Parse Statblock with AI" button on Combat Setup page
+  - Opens full-screen parsing modal with textarea input
+
+- **Input:** User pastes a full D&D 5e monster statblock (from official or homebrew source)
+
 - **Process:**  
-  - LLM extracts:  
-    - Name  
-    - Type  
-    - HP (max and formula)  
-    - AC  
-    - Attack bonuses and damage values  
-    - Speed, saving throws, and special abilities (optional)  
-  - Return structured JSON or prefilled form fields.  
-- **Output:** User can review and confirm the monster entry before adding to combat.  
+  - LLM extracts comprehensive monster data:  
+    - **Basic Info**: Name, Size, Type, Subtype, Alignment
+    - **Defense**: AC, Armor Type, HP, HP Formula
+    - **Movement**: Speed, Fly Speed, Swim Speed, Climb Speed, Burrow Speed
+    - **Ability Scores**: STR, DEX, CON, INT, WIS, CHA (with automatic modifier calculation)
+    - **Proficiencies**: Saving Throws, Skills
+    - **Resistances**: Damage Vulnerabilities, Resistances, Immunities, Condition Immunities
+    - **Senses**: Darkvision, Blindsight, Passive Perception, etc.
+    - **Languages**: Spoken and understood languages
+    - **Challenge**: Challenge Rating, XP Value, Proficiency Bonus
+    - **Special Traits**: All special abilities (e.g., "Aggressive", "Pack Tactics")
+    - **Actions**: Regular actions with full attack details (type, bonus, reach, damage)
+    - **Bonus Actions**: Bonus action abilities
+    - **Reactions**: Reaction abilities
+    - **Legendary Actions**: Legendary actions and actions per round
+    - **Lair Actions**: Environment-based actions
+  - Returns structured JSON matching Monster model
+  - Automatic retry with exponential backoff on transient failures
+  - 30-second timeout per request
+
+- **Output:**
+  - Parsed data displayed in editable preview form
+  - All fields editable before confirming
+  - User reviews and modifies as needed
+  - Click "Add to Combat" to add monster to combatant list
+  - Comprehensive error handling with user-friendly messages
+
+- **Error Handling:**
+  - API key not configured: Prompt to visit Settings
+  - Network errors: Retry automatically up to 2 times
+  - Parsing failures: Show error message with option to try again
+  - Malformed statblock: Error message with suggestion to check format
 
 ##### 3.4.2 Combat Narration  
+**Status: ⏳ Future Enhancement**
+
 - **Trigger:** User selects “Generate Narration” during a combatant’s turn.  
 - **Input Parameters:**  
   - Combatant name  
@@ -178,8 +229,9 @@ The application uses a responsive sidebar navigation with the following main sec
 - **Combat Setup**: Interface for configuring and starting combat encounters
 - **Combat Tracker**: Active combat interface with initiative tracking, HP management, and combat log
 - **Data Management**: Interface for importing, exporting, and managing persistent data
+- **Settings**: Configuration interface for API keys and application settings
 
-The navigation is implemented using Blazor Server routing with a collapsible sidebar for mobile/tablet devices.
+The navigation is implemented using Blazor WebAssembly routing with a collapsible sidebar for mobile/tablet devices.
 
 #### 4.2 Screens / Views  
 1. **Home / Dashboard:**  
@@ -288,6 +340,34 @@ The navigation is implemented using Blazor Server routing with a collapsible sid
        - Active combat status
        - Current combat round and combatant count
      - Shows privacy notice about local storage
+
+6. **Settings Screen:**
+   - **AI Configuration:**
+     - OpenAI API key input with show/hide toggle
+     - Secure password-style input (masked by default)
+     - Save/Clear buttons for API key management
+     - Success/error messages for API key operations
+     - Configuration status indicator (configured/not configured)
+     - Link to OpenAI Platform for obtaining API keys
+   
+   - **Privacy & Security Information:**
+     - Card explaining data security measures:
+       - API key stored only in browser localStorage
+       - Direct API calls from browser to OpenAI (no intermediary servers)
+       - No data sent to application servers
+     - Shields/checkmarks for visual security indicators
+   
+   - **API Usage Information:**
+     - Model information (GPT-4o-mini)
+     - Estimated cost per request (~$0.0015)
+     - Link to OpenAI usage dashboard for monitoring
+     - Recommendation to set spending limits
+   
+   - **About Statblock Parsing:**
+     - Explanation of AI parsing capabilities
+     - List of extracted fields
+     - Note about reviewing parsed data before use
+     - Disclaimer about potential AI errors
 
 
 #### 4.3 Design Principles and UI/UX Enhancements

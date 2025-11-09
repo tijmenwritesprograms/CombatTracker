@@ -113,6 +113,145 @@ public class CombatStateService
     }
 
     /// <summary>
+    /// Adds multiple instances of a monster to the combat.
+    /// All instances share characteristics and initiative but have individual HP.
+    /// </summary>
+    /// <param name="baseMonster">The monster template to create instances from.</param>
+    /// <param name="count">Number of instances to create.</param>
+    /// <returns>List of created monster instances.</returns>
+    public List<Monster> AddMonsters(Monster baseMonster, int count)
+    {
+        if (count <= 0)
+        {
+            count = 1;
+        }
+
+        var createdMonsters = new List<Monster>();
+        var groupId = _nextMonsterId; // Use the first monster's ID as the group ID
+
+        for (int i = 0; i < count; i++)
+        {
+            var instance = CloneMonster(baseMonster);
+            instance.Id = _nextMonsterId++;
+            instance.GroupId = groupId;
+            instance.InstanceNumber = i + 1;
+            _monsters.Add(instance);
+            createdMonsters.Add(instance);
+        }
+
+        RebuildCombatants();
+        _ = SaveToStorageAsync(); // Fire and forget
+        NotifyStateChanged();
+        return createdMonsters;
+    }
+
+    /// <summary>
+    /// Creates a deep clone of a monster.
+    /// </summary>
+    private Monster CloneMonster(Monster src)
+    {
+        return new Monster
+        {
+            Name = src.Name,
+            Size = src.Size,
+            Type = src.Type,
+            Subtype = src.Subtype,
+            Alignment = src.Alignment,
+            AC = src.AC,
+            ArmorType = src.ArmorType,
+            Hp = src.Hp,
+            HpFormula = src.HpFormula,
+            Speed = src.Speed,
+            FlySpeed = src.FlySpeed,
+            SwimSpeed = src.SwimSpeed,
+            ClimbSpeed = src.ClimbSpeed,
+            BurrowSpeed = src.BurrowSpeed,
+            Abilities = new AbilityScores
+            {
+                Strength = src.Abilities.Strength,
+                Dexterity = src.Abilities.Dexterity,
+                Constitution = src.Abilities.Constitution,
+                Intelligence = src.Abilities.Intelligence,
+                Wisdom = src.Abilities.Wisdom,
+                Charisma = src.Abilities.Charisma
+            },
+            Skills = src.Skills,
+            SavingThrows = src.SavingThrows,
+            Vulnerabilities = src.Vulnerabilities,
+            Resistances = src.Resistances,
+            Immunities = src.Immunities,
+            ConditionImmunities = src.ConditionImmunities,
+            Senses = src.Senses,
+            Languages = src.Languages,
+            ChallengeRating = src.ChallengeRating,
+            ExperiencePoints = src.ExperiencePoints,
+            ProficiencyBonus = src.ProficiencyBonus,
+            InitiativeModifier = src.InitiativeModifier,
+            Traits = src.Traits?.Select(t => new MonsterTrait { Name = t.Name, Description = t.Description }).ToList() ?? new List<MonsterTrait>(),
+            Actions = src.Actions?.Select(a => new MonsterAction
+            {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType,
+                AdditionalDamageFormula = a.AdditionalDamageFormula,
+                AdditionalDamageType = a.AdditionalDamageType,
+                LegendaryActionCost = a.LegendaryActionCost
+            }).ToList() ?? new List<MonsterAction>(),
+            BonusActions = src.BonusActions?.Select(a => new MonsterAction
+            {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>(),
+            Reactions = src.Reactions?.Select(a => new MonsterAction
+            {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>(),
+            LegendaryActions = src.LegendaryActions?.Select(a => new MonsterAction
+            {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType,
+                LegendaryActionCost = a.LegendaryActionCost
+            }).ToList() ?? new List<MonsterAction>(),
+            LegendaryActionsPerRound = src.LegendaryActionsPerRound,
+            LairActions = src.LairActions?.Select(a => new MonsterAction
+            {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>()
+        };
+    }
+
+    /// <summary>
     /// Removes a monster from the combat.
     /// </summary>
     public void RemoveMonster(int monsterId)
@@ -129,12 +268,27 @@ public class CombatStateService
 
     /// <summary>
     /// Rolls initiative for all combatants using 1d20 + modifier.
+    /// Monsters in the same group share the same initiative roll.
     /// </summary>
     public void RollInitiativeForAll()
     {
+        var groupInitiatives = new Dictionary<int, int>();
+
         foreach (var combatant in Combatants.Values)
         {
-            combatant.Initiative = RollD20() + combatant.InitiativeModifier;
+            if (combatant.GroupId.HasValue)
+            {
+                // Use cached group initiative if already rolled
+                if (!groupInitiatives.ContainsKey(combatant.GroupId.Value))
+                {
+                    groupInitiatives[combatant.GroupId.Value] = RollD20() + combatant.InitiativeModifier;
+                }
+                combatant.Initiative = groupInitiatives[combatant.GroupId.Value];
+            }
+            else
+            {
+                combatant.Initiative = RollD20() + combatant.InitiativeModifier;
+            }
         }
         _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
@@ -142,12 +296,27 @@ public class CombatStateService
 
     /// <summary>
     /// Rolls initiative only for monsters (non-character combatants).
+    /// Monsters in the same group share the same initiative roll.
     /// </summary>
     public void RollInitiativeForMonsters()
     {
+        var groupInitiatives = new Dictionary<int, int>();
+
         foreach (var combatant in Combatants.Values.Where(c => !c.IsCharacter))
         {
-            combatant.Initiative = RollD20() + combatant.InitiativeModifier;
+            if (combatant.GroupId.HasValue)
+            {
+                // Use cached group initiative if already rolled
+                if (!groupInitiatives.ContainsKey(combatant.GroupId.Value))
+                {
+                    groupInitiatives[combatant.GroupId.Value] = RollD20() + combatant.InitiativeModifier;
+                }
+                combatant.Initiative = groupInitiatives[combatant.GroupId.Value];
+            }
+            else
+            {
+                combatant.Initiative = RollD20() + combatant.InitiativeModifier;
+            }
         }
         _ = SaveToStorageAsync(); // Fire and forget
         NotifyStateChanged();
@@ -557,9 +726,13 @@ public class CombatStateService
         foreach (var monster in _monsters)
         {
             var key = $"monster-{monster.Id}";
+            var displayName = monster.InstanceNumber.HasValue
+                ? $"{monster.Name} {monster.InstanceNumber}"
+                : monster.Name;
+
             Combatants[key] = new CombatantSetupData
             {
-                Name = monster.Name,
+                Name = displayName,
                 Type = monster.Type,
                 HpMax = monster.Hp,
                 HpCurrent = monster.Hp,
@@ -567,7 +740,9 @@ public class CombatStateService
                 InitiativeModifier = monster.InitiativeModifier,
                 Initiative = 0,
                 ReferenceId = monster.Id,
-                IsCharacter = false
+                IsCharacter = false,
+                GroupId = monster.GroupId,
+                InstanceNumber = monster.InstanceNumber
             };
         }
     }
@@ -734,4 +909,6 @@ public class CombatantSetupData
     public int Initiative { get; set; }
     public int ReferenceId { get; set; }
     public bool IsCharacter { get; set; }
+    public int? GroupId { get; set; }
+    public int? InstanceNumber { get; set; }
 }

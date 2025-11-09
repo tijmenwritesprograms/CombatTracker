@@ -9,10 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CombatTracker.ServiceDefaul
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CombatTracker.ApiService", "CombatTracker.ApiService\CombatTracker.ApiService.csproj", "{3C7E5C0D-C2D6-4823-9C38-627726532719}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CombatTracker.Web", "CombatTracker.Web\CombatTracker.Web.csproj", "{C787B6A9-C2D1-4331-834D-A67E35051388}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CombatTracker.Web.Tests", "CombatTracker.Web.Tests\CombatTracker.Web.Tests.csproj", "{E348F887-A3D3-4176-888A-653DC1105676}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CombatTracker.WebAssembly", "CombatTracker.WebAssembly\CombatTracker.WebAssembly.csproj", "{98C4A352-69B9-4F97-BB3F-83981B5183CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CombatTracker.WebAssembly.Tests", "CombatTracker.WebAssembly.Tests\CombatTracker.WebAssembly.Tests.csproj", "{722A71B4-8510-44D1-B13D-536C2C214EEC}"
