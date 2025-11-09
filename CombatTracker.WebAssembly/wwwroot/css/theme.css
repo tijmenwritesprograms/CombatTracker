@@ -57,7 +57,9 @@ body {
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Cinzel', serif;
     font-weight: 600;
-    color: var(--secondary-color);
+    /* Use the primary (deep crimson) as the default heading color to contrast on light backgrounds.
+       Card headers force their own white heading color below. */
+    color: var(--primary-color);
     letter-spacing: 0.5px;
 }
 
@@ -97,8 +99,17 @@ h1 {
 }
 
 .btn-secondary {
-    background-color: var(--secondary-color);
-    color: white;
+    /* Secondary buttons use an accent gold to stand out against dark card headers
+       while keeping the overall D&D theme. Text uses the dark background color for contrast. */
+    background-color: var(--accent-gold);
+    color: var(--dark-bg);
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.btn-secondary:hover {
+    background-color: var(--accent-bronze);
+    color: var(--dark-bg);
+    border-color: rgba(0,0,0,0.12);
 }
 
 /* Icon Buttons Enhancement */
@@ -122,6 +133,17 @@ h1 {
     padding: 1rem 1.5rem;
     font-family: 'Cinzel', serif;
     font-weight: 600;
+}
+
+/* Ensure heading elements inside card headers are readable on the dark background. */
+.card-header h1,
+.card-header h2,
+.card-header h3,
+.card-header h4,
+.card-header h5,
+.card-header h6 {
+    color: white;
+    margin: 0;
 }
 
 .card-body {

@@ -6,6 +6,7 @@
 @inject PartyStateService PartyStateService
 @inject CombatStateService CombatStateService
 @inject NavigationManager NavigationManager
+@inject StorageStateService StorageStateService
 
 <PageTitle>Combat Setup - D&D Combat Tracker</PageTitle>
 
@@ -75,26 +76,32 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="monsterHp" class="form-label">HP</label>
                             <InputNumber id="monsterHp" class="form-control" @bind-Value="newMonster.Hp" />
                             <ValidationMessage For="@(() => newMonster.Hp)" />
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="monsterAc" class="form-label">AC</label>
                             <InputNumber id="monsterAc" class="form-control" @bind-Value="newMonster.AC" />
                             <ValidationMessage For="@(() => newMonster.AC)" />
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="monsterInitMod" class="form-label">Init Mod</label>
                             <InputNumber id="monsterInitMod" class="form-control" @bind-Value="newMonster.InitiativeModifier" />
                             <ValidationMessage For="@(() => newMonster.InitiativeModifier)" />
                         </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="monsterCount" class="form-label">Count</label>
+                            <InputNumber id="monsterCount" class="form-control" @bind-Value="monsterCount" min="1" />
+                            <div class="form-text">Number of instances</div>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Add Monster</button>
+                    <button type="submit" class="btn btn-primary">Add Monster(s)</button>
                 <button type="button" class="btn btn-outline-danger ms-2" @onclick="AddOrcTestMonster">Add Orc (Test)</button>
                 </EditForm>
             </div>
@@ -102,6 +109,39 @@
     </div>
 
     <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h4>Saved Monsters</h4>
+            </div>
+            <div class="card-body">
+                @if (savedMonsters == null || savedMonsters.Count == 0)
+                {
+                    <p class="text-muted">No saved monsters. Parse a statblock and check "Save parsed monster" to add here.</p>
+                }
+                else
+                {
+                    <ul class="list-group mb-2">
+                        @foreach (var sm in savedMonsters)
+                        {
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <strong>@sm.Name</strong>
+                                        <div class="small text-muted">@sm.Type • HP: @sm.Hp • AC: @sm.AC</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveSavedMonster(sm.Id)">Remove</button>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" class="form-control form-control-sm" style="width: 80px;" 
+                                           min="1" value="1" @onchange="@(e => savedMonsterCounts[sm.Id] = int.Parse(e.Value?.ToString() ?? "1"))" />
+                                    <button class="btn btn-sm btn-primary" @onclick="() => AddSavedMonsterToCombat(sm)">Add to Combat</button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
         <div class="card mb-3">
             <div class="card-header">
                 <h4>Combatants (@combatants.Count)</h4>
@@ -190,12 +230,13 @@
 <StatblockParserModal 
     IsOpen="@isStatblockParserOpen" 
     OnClose="@CloseStatblockParser" 
-    OnMonsterParsed="@HandleMonsterParsed" />
+    OnMonsterParsedWithCount="@HandleMonsterParsedWithCount" />
 
 @code {
     private List<Party> parties = new();
     private Dictionary<string, CombatantSetupData> combatants = new();
     private Monster newMonster = new() { Type = "Humanoid" };
+    private int monsterCount = 1;
     private bool canStartCombat => CombatStateService.IsValidForCombat();
     private bool isStatblockParserOpen = false;
 
@@ -280,17 +321,7 @@
         RefreshCombatants();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await PartyStateService.InitializeAsync();
-            await CombatStateService.InitializeAsync();
-            RefreshParties();
-            RefreshCombatants();
-            StateHasChanged();
-        }
-    }
+    // OnAfterRenderAsync: initialization (moved lower to include saved-monsters loading)
 
     protected override void OnInitialized()
     {
@@ -313,8 +344,16 @@
 
     private void HandleAddMonster()
     {
-        CombatStateService.AddMonster(newMonster);
+        if (monsterCount <= 1)
+        {
+            CombatStateService.AddMonster(newMonster);
+        }
+        else
+        {
+            CombatStateService.AddMonsters(newMonster, monsterCount);
+        }
         newMonster = new Monster { Type = "Humanoid" };
+        monsterCount = 1;
     }
 
     private void RemoveMonster(int monsterId)
@@ -378,10 +417,163 @@
         isStatblockParserOpen = false;
     }
 
-    private void HandleMonsterParsed(Monster monster)
+    private void HandleMonsterParsedWithCount((Monster Monster, int Count) data)
     {
-        CombatStateService.AddMonster(monster);
+        if (data.Count <= 1)
+        {
+            CombatStateService.AddMonster(data.Monster);
+        }
+        else
+        {
+            CombatStateService.AddMonsters(data.Monster, data.Count);
+        }
         RefreshCombatants();
+    }
+
+    // Saved monsters (user library)
+    private List<Monster> savedMonsters = new();
+    private Dictionary<int, int> savedMonsterCounts = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await PartyStateService.InitializeAsync();
+            await CombatStateService.InitializeAsync();
+            RefreshParties();
+            RefreshCombatants();
+            // Load saved monsters library
+            savedMonsters = await StorageStateService.LoadSavedMonstersAsync();
+            StateHasChanged();
+        }
+    }
+
+    private void AddSavedMonsterToCombat(Monster saved)
+    {
+        if (saved == null)
+        {
+            return;
+        }
+
+        var count = savedMonsterCounts.GetValueOrDefault(saved.Id, 1);
+        var clone = CloneMonster(saved);
+        
+        if (count <= 1)
+        {
+            CombatStateService.AddMonster(clone);
+        }
+        else
+        {
+            CombatStateService.AddMonsters(clone, count);
+        }
+        
+        RefreshCombatants();
+    }
+
+    private async Task RemoveSavedMonster(int savedId)
+    {
+        await StorageStateService.RemoveSavedMonsterAsync(savedId);
+        savedMonsters = await StorageStateService.LoadSavedMonstersAsync();
+        StateHasChanged();
+    }
+
+    private static Monster CloneMonster(Monster src)
+    {
+        if (src == null) return new Monster();
+
+        Monster clone = new()
+        {
+            // Do not copy Id so CombatStateService assigns a new one
+            Name = src.Name,
+            Size = src.Size,
+            Type = src.Type,
+            Subtype = src.Subtype,
+            Alignment = src.Alignment,
+            AC = src.AC,
+            ArmorType = src.ArmorType,
+            Hp = src.Hp,
+            HpFormula = src.HpFormula,
+            Speed = src.Speed,
+            FlySpeed = src.FlySpeed,
+            SwimSpeed = src.SwimSpeed,
+            ClimbSpeed = src.ClimbSpeed,
+            BurrowSpeed = src.BurrowSpeed,
+            Abilities = src.Abilities == null ? new AbilityScores() : new AbilityScores
+            {
+                Strength = src.Abilities.Strength,
+                Dexterity = src.Abilities.Dexterity,
+                Constitution = src.Abilities.Constitution,
+                Intelligence = src.Abilities.Intelligence,
+                Wisdom = src.Abilities.Wisdom,
+                Charisma = src.Abilities.Charisma
+            },
+            Skills = src.Skills,
+            SavingThrows = src.SavingThrows,
+            Vulnerabilities = src.Vulnerabilities,
+            Resistances = src.Resistances,
+            Immunities = src.Immunities,
+            ConditionImmunities = src.ConditionImmunities,
+            Senses = src.Senses,
+            Languages = src.Languages,
+            ChallengeRating = src.ChallengeRating,
+            ExperiencePoints = src.ExperiencePoints,
+            ProficiencyBonus = src.ProficiencyBonus,
+            InitiativeModifier = src.InitiativeModifier,
+            Traits = src.Traits?.Select(t => new MonsterTrait { Name = t.Name, Description = t.Description }).ToList() ?? new List<MonsterTrait>(),
+            Actions = src.Actions?.Select(a => new MonsterAction {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>(),
+            BonusActions = src.BonusActions?.Select(a => new MonsterAction {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>(),
+            Reactions = src.Reactions?.Select(a => new MonsterAction {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>(),
+            LegendaryActions = src.LegendaryActions?.Select(a => new MonsterAction {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>(),
+            LegendaryActionsPerRound = src.LegendaryActionsPerRound,
+            LairActions = src.LairActions?.Select(a => new MonsterAction {
+                Name = a.Name,
+                Description = a.Description,
+                AttackType = a.AttackType,
+                AttackBonus = a.AttackBonus,
+                Reach = a.Reach,
+                Range = a.Range,
+                DamageFormula = a.DamageFormula,
+                DamageType = a.DamageType
+            }).ToList() ?? new List<MonsterAction>()
+        };
+
+        return clone;
     }
 
     public void Dispose()

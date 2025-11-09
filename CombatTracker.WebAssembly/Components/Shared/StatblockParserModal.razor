@@ -3,6 +3,7 @@
 @inject IStatblockParserService StatblockParser
 @inject IApiKeyService ApiKeyService
 @inject NavigationManager NavigationManager
+@inject StorageStateService StorageStateService
 
 <!-- Modal backdrop -->
 @if (IsOpen)
@@ -182,6 +183,21 @@ Javelin. Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 f
                                 }
                             </div>
                         }
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label for="parsedMonsterCount" class="form-label">Number to Add</label>
+                                <input type="number" id="parsedMonsterCount" class="form-control" @bind="parsedMonsterCount" min="1" />
+                                <div class="form-text">Create multiple instances that share initiative</div>
+                            </div>
+                        </div>
+
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="saveToLibrary" @bind="saveToLibrary" />
+                            <label class="form-check-label" for="saveToLibrary">
+                                Save parsed monster to Saved Monsters library
+                            </label>
+                        </div>
                     }
                 </div>
                 <div class="modal-footer">
@@ -217,12 +233,18 @@ Javelin. Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 f
     [Parameter]
     public EventCallback<Monster> OnMonsterParsed { get; set; }
 
+    [Parameter]
+    public EventCallback<(Monster Monster, int Count)> OnMonsterParsedWithCount { get; set; }
+
     private string statblockInput = string.Empty;
     private bool isParsing = false;
     private bool hasApiKey = false;
     private string? errorMessage;
     
     public Monster? ParsedMonster { get; private set; }
+
+    private bool saveToLibrary = false;
+    private int parsedMonsterCount = 1;
 
     private bool CanParse => hasApiKey && !string.IsNullOrWhiteSpace(statblockInput) && !isParsing;
 
@@ -279,7 +301,28 @@ Javelin. Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 f
     {
         if (ParsedMonster != null)
         {
-            await OnMonsterParsed.InvokeAsync(ParsedMonster);
+            // If requested, save parsed monster to user's saved-monsters library
+            if (saveToLibrary)
+            {
+                try
+                {
+                    await StorageStateService.AddSavedMonsterAsync(ParsedMonster);
+                }
+                catch
+                {
+                    // swallow; StorageStateService already logs and raises events
+                }
+            }
+
+            // Invoke the callback with count if available, otherwise use the legacy callback
+            if (OnMonsterParsedWithCount.HasDelegate)
+            {
+                await OnMonsterParsedWithCount.InvokeAsync((ParsedMonster, parsedMonsterCount));
+            }
+            else
+            {
+                await OnMonsterParsed.InvokeAsync(ParsedMonster);
+            }
             await Close();
         }
     }
@@ -289,6 +332,8 @@ Javelin. Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 f
         ParsedMonster = null;
         statblockInput = string.Empty;
         errorMessage = null;
+        parsedMonsterCount = 1;
+        saveToLibrary = false;
     }
 
     private async Task Close()
