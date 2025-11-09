@@ -3,6 +3,7 @@ using CombatTracker.WebAssembly.Components.Pages;
 using CombatTracker.WebAssembly.Models;
 using CombatTracker.WebAssembly.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -23,6 +24,17 @@ public class CombatSetupPageTests : TestContext
         var mockParserService = new Mock<IStatblockParserService>();
         mockParserService.Setup(x => x.IsConfiguredAsync()).ReturnsAsync(false);
         Services.AddSingleton(mockParserService.Object);
+
+        // Mock StorageStateService dependencies
+        var mockLocalStorage = new Mock<ILocalStorageService>();
+        mockLocalStorage.Setup(x => x.SetItemAsync(It.IsAny<string>(), It.IsAny<object>())).ReturnsAsync(true);
+        Services.AddSingleton(mockLocalStorage.Object);
+
+        var mockStorageLogger = new Mock<ILogger<StorageStateService>>();
+        Services.AddSingleton(mockStorageLogger.Object);
+
+        // Add StorageStateService
+        Services.AddSingleton<StorageStateService>();
     }
 
     [Fact]
