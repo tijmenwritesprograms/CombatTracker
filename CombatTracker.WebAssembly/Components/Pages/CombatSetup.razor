@@ -166,29 +166,81 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var kvp in combatants)
-                            {
-                                var combatant = kvp.Value;
-                                <tr>
-                                    <td>@combatant.Name</td>
-                                    <td>@combatant.Type</td>
-                                    <td>@combatant.HpMax</td>
-                                    <td>@combatant.AC</td>
-                                    <td>@(combatant.InitiativeModifier >= 0 ? "+" : "")@combatant.InitiativeModifier</td>
-                                    <td>
-                                        <input type="number" class="form-control form-control-sm" style="width: 80px;" 
-                                               value="@combatant.Initiative" 
-                                               @onchange="@(e => OnInitiativeChanged(kvp.Key, e.Value?.ToString()))" />
-                                    </td>
-                                    <td>
-                                        @if (!combatant.IsCharacter)
-                                        {
-                                            <button class="btn btn-sm btn-danger" @onclick="() => RemoveMonster(combatant.ReferenceId)">
-                                                Remove
-                                            </button>
-                                        }
-                                    </td>
-                                </tr>
+                            @{
+                                // Group combatants by GroupId for grouped display
+                                var groupedCombatants = combatants
+                                    .GroupBy(kvp => kvp.Value.GroupId ?? -kvp.Value.ReferenceId) // Use negative ReferenceId for ungrouped
+                                    .OrderBy(g => g.First().Key);
+
+                                foreach (var group in groupedCombatants)
+                                {
+                                    var members = group.OrderBy(kvp => kvp.Value.InstanceNumber ?? 0).ToList();
+                                    var firstMember = members.First().Value;
+                                    var isGroup = members.Count > 1;
+
+                                    <tr>
+                                        <td>
+                                            @if (isGroup)
+                                            {
+                                                var baseName = firstMember.Name;
+                                                // Remove instance number from name if present
+                                                var lastSpace = baseName.LastIndexOf(' ');
+                                                if (lastSpace > 0 && int.TryParse(baseName.Substring(lastSpace + 1), out _))
+                                                {
+                                                    baseName = baseName.Substring(0, lastSpace);
+                                                }
+                                                <text>@baseName (×@members.Count)</text>
+                                            }
+                                            else
+                                            {
+                                                @firstMember.Name
+                                            }
+                                        </td>
+                                        <td>@firstMember.Type</td>
+                                        <td>
+                                            @if (isGroup)
+                                            {
+                                                <div class="d-flex flex-column gap-1">
+                                                    @foreach (var member in members)
+                                                    {
+                                                        <small class="text-muted">@member.Value.HpMax</small>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @firstMember.HpMax
+                                            }
+                                        </td>
+                                        <td>@firstMember.AC</td>
+                                        <td>@(firstMember.InitiativeModifier >= 0 ? "+" : "")@firstMember.InitiativeModifier</td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm" style="width: 80px;" 
+                                                   value="@firstMember.Initiative" 
+                                                   @onchange="@(e => {
+                                                       // Update all group members with the same initiative
+                                                       foreach (var member in members)
+                                                       {
+                                                           OnInitiativeChanged(member.Key, e.Value?.ToString());
+                                                       }
+                                                   })" />
+                                        </td>
+                                        <td>
+                                            @if (!firstMember.IsCharacter)
+                                            {
+                                                <button class="btn btn-sm btn-danger" @onclick="() => {
+                                                    // Remove all members of the group
+                                                    foreach (var member in members)
+                                                    {
+                                                        RemoveMonster(member.Value.ReferenceId);
+                                                    }
+                                                }">
+                                                    Remove
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>

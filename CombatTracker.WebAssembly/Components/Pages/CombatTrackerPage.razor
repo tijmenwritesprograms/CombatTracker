@@ -60,26 +60,53 @@ else
                         <thead>
                             <tr>
                                 <th style="width: 50px;"></th>
-                                <th>Initiative</th>
+                                <th style="width: 80px;">Initiative</th>
                                 <th>Name</th>
-                                <th>Type</th>
-                                <th>HP</th>
-                                <th>AC</th>
-                                <th>Status</th>
-                                <th style="width: 200px;">Actions</th>
+                                <th style="width: 100px;">Type</th>
+                                <th style="width: 200px;">HP</th>
+                                <th style="width: 80px;">AC</th>
+                                <th style="width: 150px;">Status</th>
+                                <th style="width: 250px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @{
-                                var combatants = CombatStateService.GetCombatantsWithData();
-                                for (int i = 0; i < combatants.Count; i++)
+                                var allCombatants = CombatStateService.GetCombatantsWithData();
+                                
+                                // Group by GroupId, maintaining order
+                                var processedIndices = new HashSet<int>();
+                                
+                                for (int i = 0; i < allCombatants.Count; i++)
                                 {
-                                    var (instance, data) = combatants[i];
-                                    var isCurrentTurn = i == CombatStateService.ActiveCombat!.TurnIndex;
+                                    if (processedIndices.Contains(i)) continue;
+                                    
+                                    var (instance, data) = allCombatants[i];
+                                    
+                                    // Find all members of this group
+                                    var groupMembers = new List<(CombatantInstance instance, CombatantSetupData data, int index)> { (instance, data, i) };
+                                    
+                                    if (data.GroupId.HasValue)
+                                    {
+                                        for (int j = i + 1; j < allCombatants.Count; j++)
+                                        {
+                                            var (otherInstance, otherData) = allCombatants[j];
+                                            if (otherData.GroupId == data.GroupId)
+                                            {
+                                                groupMembers.Add((otherInstance, otherData, j));
+                                                processedIndices.Add(j);
+                                            }
+                                        }
+                                    }
+                                    
+                                    processedIndices.Add(i);
+                                    
+                                    var isGroup = groupMembers.Count > 1;
+                                    var isCurrentTurn = groupMembers.Any(m => m.index == CombatStateService.ActiveCombat!.TurnIndex);
                                     var rowClass = isCurrentTurn ? "table-primary" : "";
                                     
-                                    // Apply strikethrough for unconscious/dead combatants
-                                    var textClass = instance.Status != Status.Alive ? "text-decoration-line-through text-muted" : "";
+                                    // Apply strikethrough if ALL group members are not alive
+                                    var allDead = groupMembers.All(m => m.instance.Status != Status.Alive);
+                                    var textClass = allDead ? "text-decoration-line-through text-muted" : "";
 
                                     <tr class="@rowClass slide-in">
                                         <td>
@@ -96,11 +123,23 @@ else
                                         <td class="@textClass">
                                             @if (!data.IsCharacter)
                                             {
+                                                var displayName = data.Name;
+                                                if (isGroup)
+                                                {
+                                                    // Remove instance number from name
+                                                    var lastSpace = displayName.LastIndexOf(' ');
+                                                    if (lastSpace > 0 && int.TryParse(displayName.Substring(lastSpace + 1), out _))
+                                                    {
+                                                        displayName = displayName.Substring(0, lastSpace);
+                                                    }
+                                                    displayName = $"{displayName} (×{groupMembers.Count})";
+                                                }
+                                                
                                                 <div class="d-flex align-items-center gap-2">
                                                     <strong class="monster-name-link flex-grow-1 text-truncate" style="min-width:0;" 
                                                             @onclick="() => ShowStatblock(data.ReferenceId)" 
                                                             title="Click to view full statblock">
-                                                        @data.Name
+                                                        @displayName
                                                     </strong>
                                                     <button class="btn btn-sm btn-link p-0 ms-2 d-inline-flex align-items-center" 
                                                             @onclick="() => ToggleQuickReference(instance.Index)"
@@ -118,61 +157,148 @@ else
                                         </td>
                                         <td class="@textClass">@data.Type</td>
                                         <td>
-                                            <div>
-                                                <span class="@textClass">@instance.HpCurrent / @data.HpMax</span>
-                                                @if (instance.HpCurrent <= 0)
-                                                {
-                                                    <span class="badge bg-danger ms-1">0 HP</span>
-                                                }
-                                                else if (instance.HpCurrent < data.HpMax / 2)
-                                                {
-                                                    <span class="badge bg-warning ms-1">Bloodied</span>
-                                                }
-                                            </div>
-                                            @if (instance.HpCurrent > 0)
+                                            @if (isGroup)
                                             {
-                                                var hpPercent = (int)((double)instance.HpCurrent / data.HpMax * 100);
-                                                <div class="hp-bar" title="HP: @instance.HpCurrent / @data.HpMax">
-                                                    <div class="hp-bar-fill" style="width: @hpPercent%"></div>
+                                                <div class="d-flex flex-column gap-1" style="min-width: 150px;">
+                                                    @foreach (var member in groupMembers)
+                                                    {
+                                                        var memberTextClass = member.instance.Status != Status.Alive ? "text-decoration-line-through text-muted" : "";
+                                                        <div>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <small class="@memberTextClass">
+                                                                    #@member.data.InstanceNumber: @member.instance.HpCurrent / @member.data.HpMax
+                                                                </small>
+                                                                @if (member.instance.HpCurrent <= 0)
+                                                                {
+                                                                    <span class="badge bg-danger" style="font-size: 0.6rem;">0 HP</span>
+                                                                }
+                                                                else if (member.instance.HpCurrent < member.data.HpMax / 2)
+                                                                {
+                                                                    <span class="badge bg-warning" style="font-size: 0.6rem;">Bloodied</span>
+                                                                }
+                                                            </div>
+                                                            @if (member.instance.HpCurrent > 0)
+                                                            {
+                                                                var hpPercent = (int)((double)member.instance.HpCurrent / member.data.HpMax * 100);
+                                                                <div class="hp-bar" style="height: 6px; margin-top: 2px;" title="HP: @member.instance.HpCurrent / @member.data.HpMax">
+                                                                    <div class="hp-bar-fill" style="width: @hpPercent%"></div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    }
                                                 </div>
+                                            }
+                                            else
+                                            {
+                                                <div>
+                                                    <span class="@textClass">@instance.HpCurrent / @data.HpMax</span>
+                                                    @if (instance.HpCurrent <= 0)
+                                                    {
+                                                        <span class="badge bg-danger ms-1">0 HP</span>
+                                                    }
+                                                    else if (instance.HpCurrent < data.HpMax / 2)
+                                                    {
+                                                        <span class="badge bg-warning ms-1">Bloodied</span>
+                                                    }
+                                                </div>
+                                                @if (instance.HpCurrent > 0)
+                                                {
+                                                    var hpPercent = (int)((double)instance.HpCurrent / data.HpMax * 100);
+                                                    <div class="hp-bar" title="HP: @instance.HpCurrent / @data.HpMax">
+                                                        <div class="hp-bar-fill" style="width: @hpPercent%"></div>
+                                                    </div>
+                                                }
                                             }
                                         </td>
                                         <td class="@textClass">
                                             <span class="badge bg-secondary">AC @data.AC</span>
                                         </td>
                                         <td>
-                                            @if (instance.Status == Status.Alive)
+                                            @if (isGroup)
                                             {
-                                                <span class="badge bg-success">Alive</span>
-                                            }
-                                            else if (instance.Status == Status.Unconscious)
-                                            {
-                                                <span class="badge bg-danger">Unconscious</span>
+                                                <div class="d-flex flex-column gap-2">
+                                                    @foreach (var member in groupMembers)
+                                                    {
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            @if (member.instance.Status == Status.Alive)
+                                                            {
+                                                                <span class="badge bg-success">Alive</span>
+                                                            }
+                                                            else if (member.instance.Status == Status.Unconscious)
+                                                            {
+                                                                <span class="badge bg-danger">Unconscious</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-dark">Dead</span>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-dark">Dead</span>
+                                                @if (instance.Status == Status.Alive)
+                                                {
+                                                    <span class="badge bg-success">Alive</span>
+                                                }
+                                                else if (instance.Status == Status.Unconscious)
+                                                {
+                                                    <span class="badge bg-danger">Unconscious</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-dark">Dead</span>
+                                                }
                                             }
                                         </td>
                                         <td>
-                                            @if (instance.Status == Status.Alive)
+                                            @if (isGroup)
                                             {
-                                                <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-outline-danger" @onclick="() => ShowDamageModal(instance.Index)" title="Apply Damage (D)">
-                                                        <span class="bi bi-dash-circle"></span> Damage
-                                                    </button>
-                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)" title="Apply Healing (H)">
-                                                        <span class="bi bi-plus-circle"></span> Heal
-                                                    </button>
+                                                <div class="d-flex flex-column gap-2">
+                                                    @foreach (var member in groupMembers)
+                                                    {
+                                                        <div class="btn-group btn-group-sm">
+                                                            @if (member.instance.Status == Status.Alive)
+                                                            {
+                                                                <button class="btn btn-outline-danger" @onclick="() => ShowDamageModal(member.index)" title="Apply Damage">
+                                                                    <span class="bi bi-dash-circle"></span> Damage
+                                                                </button>
+                                                                <button class="btn btn-outline-success" @onclick="() => ShowHealModal(member.index)" title="Apply Healing">
+                                                                    <span class="bi bi-plus-circle"></span> Heal
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <button class="btn btn-outline-success" @onclick="() => ShowHealModal(member.index)" title="Apply Healing">
+                                                                    <span class="bi bi-plus-circle"></span> Heal
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                    }
                                                 </div>
                                             }
                                             else
                                             {
-                                                <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-outline-success" @onclick="() => ShowHealModal(instance.Index)" title="Apply Healing (H)">
-                                                        <span class="bi bi-plus-circle"></span> Heal
-                                                    </button>
-                                                </div>
+                                                @if (instance.Status == Status.Alive)
+                                                {
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-danger" @onclick="() => ShowDamageModal(i)" title="Apply Damage (D)">
+                                                            <span class="bi bi-dash-circle"></span> Damage
+                                                        </button>
+                                                        <button class="btn btn-outline-success" @onclick="() => ShowHealModal(i)" title="Apply Healing (H)">
+                                                            <span class="bi bi-plus-circle"></span> Heal
+                                                        </button>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-success" @onclick="() => ShowHealModal(i)" title="Apply Healing (H)">
+                                                            <span class="bi bi-plus-circle"></span> Heal
+                                                        </button>
+                                                    </div>
+                                                }
                                             }
                                         </td>
                                     </tr>

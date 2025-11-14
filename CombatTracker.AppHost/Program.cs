@@ -1,9 +1,8 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var apiService = builder.AddProject<Projects.CombatTracker_ApiService>("apiservice");
+builder.AddAzureContainerAppEnvironment("env");
 
 builder.AddProject<Projects.CombatTracker_WebAssembly>("webfrontend")
-    .WithExternalHttpEndpoints()
-    .WithReference(apiService);
+    .WithExternalHttpEndpoints();
 
 builder.Build().Run();
