@@ -1,0 +1,75 @@
+@using CombatTracker.WebAssembly.Models
+
+@if (Monster != null)
+{
+    <tr class="monster-quick-reference">
+        <td colspan="8" class="p-3">
+            <div class="card border-danger bg-light">
+                <div class="card-body text-dark">
+                    <h6 class="card-title text-danger mb-3">Quick Reference</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>AC:</strong> @Monster.AC @(!string.IsNullOrWhiteSpace(Monster.ArmorType) ? $"({Monster.ArmorType})" : "")
+                        </div>
+                        <div class="col-md-3">
+                            <strong>HP:</strong> @Monster.Hp @(!string.IsNullOrWhiteSpace(Monster.HpFormula) ? $"({Monster.HpFormula})" : "")
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Speed:</strong> @Monster.Speed ft.
+                            @if (Monster.FlySpeed > 0) { <text>, fly @Monster.FlySpeed ft.</text> }
+                            @if (Monster.SwimSpeed > 0) { <text>, swim @Monster.SwimSpeed ft.</text> }
+                        </div>
+                        <div class="col-md-3">
+                            <strong>CR:</strong> @Monster.ChallengeRating
+                        </div>
+                    </div>
+                    @if (Monster.Actions?.Any() == true)
+                    {
+                        <div class="mt-3">
+                            <strong>Primary Actions:</strong>
+                            <ul class="mb-0 mt-1">
+                                @foreach (var action in Monster.Actions.Take(3))
+                                {
+                                    <li>
+                                        <strong>@action.Name:</strong>
+                                        @if (!string.IsNullOrWhiteSpace(action.AttackType))
+                                        {
+                                            <span>
+                                                @action.AttackType: 
+                                                @(action.AttackBonus.HasValue ? (action.AttackBonus >= 0 ? "+" : "") + action.AttackBonus.ToString() : "") to hit
+                                                @if (action.Reach.HasValue)
+                                                {
+                                                    <text>, reach @action.Reach ft.</text>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(action.Range))
+                                                {
+                                                    <text>, range @action.Range ft.</text>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(action.DamageFormula))
+                                                {
+                                                    <text>. Hit: @action.DamageFormula @action.DamageType damage</text>
+                                                }
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @action.Description
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </td>
+    </tr>
+}
+
+@code {
+    /// <summary>
+    /// The monster to display quick reference information for.
+    /// </summary>
+    [Parameter]
+    public Monster? Monster { get; set; }
+}

@@ -20,6 +20,18 @@ public class CombatantInstance
     public int ReferenceId { get; set; }
 
     /// <summary>
+    /// Group identifier for monsters that are part of a group.
+    /// Null if this is a solo combatant or a character.
+    /// </summary>
+    public int? GroupId { get; set; }
+
+    /// <summary>
+    /// Instance number within a group (e.g., 1, 2, 3 for "Orc 1", "Orc 2", "Orc 3").
+    /// Null if this is not part of a group.
+    /// </summary>
+    public int? InstanceNumber { get; set; }
+
+    /// <summary>
     /// Initiative roll result for turn order.
     /// </summary>
     [Range(-4, 30)]

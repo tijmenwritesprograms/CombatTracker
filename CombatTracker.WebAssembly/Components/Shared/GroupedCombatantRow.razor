@@ -1,0 +1,152 @@
+﻿@using CombatTracker.WebAssembly.Models
+@using CombatTracker.WebAssembly.Services
+
+<tr class="@RowClass slide-in">
+    <td>
+        @if (IsCurrentTurn)
+        {
+            <div class="initiative-indicator" title="Current Turn" aria-label="Current turn indicator"></div>
+        }
+    </td>
+    <td>
+        <div class="d-flex align-items-center">
+            <strong style="font-size: 1.1rem;">@Initiative</strong>
+        </div>
+    </td>
+    <td class="@TextClass">
+        <div class="d-flex align-items-center gap-2">
+            <strong class="monster-name-link flex-grow-1 text-truncate" style="min-width:0;" 
+                    @onclick="() => OnShowStatblock.InvokeAsync(ReferenceId)" 
+                    title="Click to view full statblock">
+                @DisplayName (×@GroupMembers.Count)
+            </strong>
+            <button class="btn btn-sm btn-link p-0 ms-2 d-inline-flex align-items-center" 
+                    @onclick="() => OnToggleQuickReference.InvokeAsync(GroupMembers.First().Instance.Index)"
+                    title="Toggle quick reference" aria-label="Toggle quick reference">
+                <i class="bi @( IsQuickRefExpanded ? "bi-chevron-up" : "bi-chevron-down" )" aria-hidden="true"></i>
+                <span class="chevron-fallback ms-1">@(IsQuickRefExpanded ? "▴" : "▾")</span>
+            </button>
+        </div>
+    </td>
+    <td class="@TextClass">@Type</td>
+    <td>
+        <div class="d-flex flex-column gap-1" style="min-width: 150px;">
+            @foreach (var member in GroupMembers)
+            {
+                var memberTextClass = member.Instance.Status != Status.Alive ? "text-decoration-line-through text-muted" : "";
+                <div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="@memberTextClass">
+                            #@member.Data.InstanceNumber: @member.Instance.HpCurrent / @member.Data.HpMax
+                        </small>
+                        @if (member.Instance.HpCurrent <= 0)
+                        {
+                            <span class="badge bg-danger" style="font-size: 0.6rem;">0 HP</span>
+                        }
+                        else if (member.Instance.HpCurrent < member.Data.HpMax / 2)
+                        {
+                            <span class="badge bg-warning" style="font-size: 0.6rem;">Bloodied</span>
+                        }
+                    </div>
+                    @if (member.Instance.HpCurrent > 0)
+                    {
+                        var hpPercent = (int)((double)member.Instance.HpCurrent / member.Data.HpMax * 100);
+                        <div class="hp-bar" style="height: 6px; margin-top: 2px;" title="HP: @member.Instance.HpCurrent / @member.Data.HpMax">
+                            <div class="hp-bar-fill" style="width: @hpPercent%"></div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </td>
+    <td class="@TextClass">
+        <span class="badge bg-secondary">AC @AC</span>
+    </td>
+    <td>
+        <div class="d-flex flex-column gap-2">
+            @foreach (var member in GroupMembers)
+            {
+                <div class="d-flex align-items-center gap-2">
+                    @if (member.Instance.Status == Status.Alive)
+                    {
+                        <span class="badge bg-success">Alive</span>
+                    }
+                    else if (member.Instance.Status == Status.Unconscious)
+                    {
+                        <span class="badge bg-danger">Unconscious</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-dark">Dead</span>
+                    }
+                </div>
+            }
+        </div>
+    </td>
+    <td>
+        <div class="flex-column gap-2">
+            @foreach (var member in GroupMembers)
+            {
+                <CombatantActions 
+                    CombatantIndex="@member.Instance.Index" 
+                    IsAlive="@(member.Instance.Status == Status.Alive)" 
+                    OnDamage="@OnDamage" 
+                    OnHeal="@OnHeal" />
+            }
+        </div>
+    </td>
+</tr>
+
+@code {
+    [Parameter, EditorRequired]
+    public List<(CombatantInstance Instance, CombatantSetupData Data)> GroupMembers { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public bool IsCurrentTurn { get; set; }
+
+    [Parameter]
+    public bool IsQuickRefExpanded { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnDamage { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnHeal { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnShowStatblock { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnToggleQuickReference { get; set; }
+
+    private string RowClass => IsCurrentTurn ? "table-primary" : "";
+    
+    private string TextClass
+    {
+        get
+        {
+            var allDead = GroupMembers.All(m => m.Instance.Status != Status.Alive);
+            return allDead ? "text-decoration-line-through text-muted" : "";
+        }
+    }
+
+    private int Initiative => GroupMembers.First().Instance.Initiative;
+    private int ReferenceId => GroupMembers.First().Data.ReferenceId;
+    private string Type => GroupMembers.First().Data.Type;
+    private int AC => GroupMembers.First().Data.AC;
+    
+    private string DisplayName
+    {
+        get
+        {
+            var name = GroupMembers.First().Data.Name;
+            // Remove instance number from name if present
+            var lastSpace = name.LastIndexOf(' ');
+            if (lastSpace > 0 && int.TryParse(name.Substring(lastSpace + 1), out _))
+            {
+                name = name.Substring(0, lastSpace);
+            }
+            return name;
+        }
+    }
+}

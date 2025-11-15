@@ -1,0 +1,112 @@
+@using CombatTracker.WebAssembly.Models
+@using CombatTracker.WebAssembly.Services
+
+<tr class="@RowClass slide-in">
+    <td>
+        @if (IsCurrentTurn)
+        {
+            <div class="initiative-indicator" title="Current Turn" aria-label="Current turn indicator"></div>
+        }
+    </td>
+    <td>
+        <div class="d-flex align-items-center">
+            <strong style="font-size: 1.1rem;">@Instance.Initiative</strong>
+        </div>
+    </td>
+    <td class="@TextClass">
+        @if (!Data.IsCharacter)
+        {
+            <div class="d-flex align-items-center gap-2">
+                <strong class="monster-name-link flex-grow-1 text-truncate" style="min-width:0;" 
+                        @onclick="() => OnShowStatblock.InvokeAsync(Data.ReferenceId)" 
+                        title="Click to view full statblock">
+                    @Data.Name
+                </strong>
+                <button class="btn btn-sm btn-link p-0 ms-2 d-inline-flex align-items-center" 
+                        @onclick="() => OnToggleQuickReference.InvokeAsync(Instance.Index)"
+                        title="Toggle quick reference" aria-label="Toggle quick reference">
+                    <i class="bi @( IsQuickRefExpanded ? "bi-chevron-up" : "bi-chevron-down" )" aria-hidden="true"></i>
+                    <span class="chevron-fallback ms-1">@(IsQuickRefExpanded ? "?" : "?")</span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <strong>@Data.Name</strong>
+        }
+    </td>
+    <td class="@TextClass">@Data.Type</td>
+    <td>
+        <div>
+            <span class="@TextClass">@Instance.HpCurrent / @Data.HpMax</span>
+            @if (Instance.HpCurrent <= 0)
+            {
+                <span class="badge bg-danger ms-1">0 HP</span>
+            }
+            else if (Instance.HpCurrent < Data.HpMax / 2)
+            {
+                <span class="badge bg-warning ms-1">Bloodied</span>
+            }
+        </div>
+        @if (Instance.HpCurrent > 0)
+        {
+            var hpPercent = (int)((double)Instance.HpCurrent / Data.HpMax * 100);
+            <div class="hp-bar" title="HP: @Instance.HpCurrent / @Data.HpMax">
+                <div class="hp-bar-fill" style="width: @hpPercent%"></div>
+            </div>
+        }
+    </td>
+    <td class="@TextClass">
+        <span class="badge bg-secondary">AC @Data.AC</span>
+    </td>
+    <td>
+        @if (Instance.Status == Status.Alive)
+        {
+            <span class="badge bg-success">Alive</span>
+        }
+        else if (Instance.Status == Status.Unconscious)
+        {
+            <span class="badge bg-danger">Unconscious</span>
+        }
+        else
+        {
+            <span class="badge bg-dark">Dead</span>
+        }
+    </td>
+    <td>
+        <CombatantActions 
+            CombatantIndex="@Instance.Index" 
+            IsAlive="@(Instance.Status == Status.Alive)" 
+            OnDamage="@OnDamage" 
+            OnHeal="@OnHeal" />
+    </td>
+</tr>
+
+@code {
+    [Parameter, EditorRequired]
+    public CombatantInstance Instance { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public CombatantSetupData Data { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public bool IsCurrentTurn { get; set; }
+
+    [Parameter]
+    public bool IsQuickRefExpanded { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnDamage { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnHeal { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnShowStatblock { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnToggleQuickReference { get; set; }
+
+    private string RowClass => IsCurrentTurn ? "table-primary" : "";
+    private string TextClass => Instance.Status != Status.Alive ? "text-decoration-line-through text-muted" : "";
+}

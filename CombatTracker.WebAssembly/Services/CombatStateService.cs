@@ -1,4 +1,3 @@
-
 using CombatTracker.WebAssembly.Models;
 using Microsoft.Extensions.Logging;
 
@@ -390,6 +389,8 @@ public class CombatStateService
             {
                 Index = index,
                 ReferenceId = combatant.ReferenceId,
+                GroupId = combatant.GroupId,
+                InstanceNumber = combatant.InstanceNumber,
                 Initiative = combatant.Initiative,
                 HpCurrent = combatant.HpCurrent,
                 Status = Status.Alive
