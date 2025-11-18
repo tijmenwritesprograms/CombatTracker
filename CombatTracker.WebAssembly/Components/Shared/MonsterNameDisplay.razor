@@ -1,0 +1,51 @@
+<div class="d-flex align-items-center gap-2">
+    <strong class="monster-name-link flex-grow-1 text-truncate" style="min-width:0;" 
+            @onclick="() => OnShowStatblock.InvokeAsync(ReferenceId)" 
+            title="Click to view full statblock">
+        @Name
+    </strong>
+    <button class="btn btn-sm btn-link p-0 ms-2 d-inline-flex align-items-center" 
+            @onclick="() => OnToggleQuickReference.InvokeAsync(CombatantIndex)"
+            title="Toggle quick reference" aria-label="Toggle quick reference">
+        <i class="bi @( IsExpanded ? "bi-chevron-up" : "bi-chevron-down" )" aria-hidden="true"></i>
+        <span class="chevron-fallback ms-1">@(IsExpanded ? "?" : "?")</span>
+    </button>
+</div>
+
+@code {
+    /// <summary>
+    /// The name of the monster to display.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// The reference ID of the monster for showing statblock.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public int ReferenceId { get; set; }
+
+    /// <summary>
+    /// The combatant index for toggling quick reference.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public int CombatantIndex { get; set; }
+
+    /// <summary>
+    /// Whether the quick reference is expanded.
+    /// </summary>
+    [Parameter]
+    public bool IsExpanded { get; set; }
+
+    /// <summary>
+    /// Callback when statblock should be shown.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnShowStatblock { get; set; }
+
+    /// <summary>
+    /// Callback when quick reference should be toggled.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnToggleQuickReference { get; set; }
+}

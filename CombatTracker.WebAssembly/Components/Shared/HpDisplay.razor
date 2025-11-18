@@ -1,0 +1,52 @@
+<div>
+    <span class="@TextClass">@HpCurrent / @HpMax</span>
+    @if (HpCurrent <= 0)
+    {
+        <span class="badge bg-danger ms-1">0 HP</span>
+    }
+    else if (HpCurrent < HpMax / 2)
+    {
+        <span class="badge bg-warning ms-1">Bloodied</span>
+    }
+</div>
+@if (HpCurrent > 0)
+{
+    var hpPercent = (int)((double)HpCurrent / HpMax * 100);
+    <div class="hp-bar" title="HP: @HpCurrent / @HpMax">
+        <div class="hp-bar-fill" style="width: @hpPercent%"></div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Current hit points.
+    /// </summary>
+    [Parameter]
+    public int HpCurrent { get; set; }
+
+    /// <summary>
+    /// Maximum hit points.
+    /// </summary>
+    [Parameter]
+    public int HpMax { get; set; }
+
+    /// <summary>
+    /// Current status of the combatant.
+    /// </summary>
+    [Parameter]
+    public Models.Status Status { get; set; }
+
+    /// <summary>
+    /// Whether to show compact display (for grouped combatants).
+    /// </summary>
+    [Parameter]
+    public bool IsCompact { get; set; }
+
+    /// <summary>
+    /// Optional instance number for grouped display.
+    /// </summary>
+    [Parameter]
+    public int? InstanceNumber { get; set; }
+
+    private string TextClass => Status != Models.Status.Alive ? "text-decoration-line-through text-muted" : "";
+}

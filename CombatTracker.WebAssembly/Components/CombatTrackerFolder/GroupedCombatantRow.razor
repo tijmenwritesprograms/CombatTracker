@@ -1,42 +1,30 @@
-﻿@using CombatTracker.WebAssembly.Models
-@using CombatTracker.WebAssembly.Services
+@using Models;
+
 
 <tr class="@RowClass slide-in">
     <td>
-        @if (IsCurrentTurn)
-        {
-            <div class="initiative-indicator" title="Current Turn" aria-label="Current turn indicator"></div>
-        }
+        <InitiativeIndicator IsCurrentTurn="@IsCurrentTurn" />
     </td>
     <td>
-        <div class="d-flex align-items-center">
-            <strong style="font-size: 1.1rem;">@Initiative</strong>
-        </div>
+        <InitiativeDisplay Initiative="@Initiative" />
     </td>
     <td class="@TextClass">
-        <div class="d-flex align-items-center gap-2">
-            <strong class="monster-name-link flex-grow-1 text-truncate" style="min-width:0;" 
-                    @onclick="() => OnShowStatblock.InvokeAsync(ReferenceId)" 
-                    title="Click to view full statblock">
-                @DisplayName (×@GroupMembers.Count)
-            </strong>
-            <button class="btn btn-sm btn-link p-0 ms-2 d-inline-flex align-items-center" 
-                    @onclick="() => OnToggleQuickReference.InvokeAsync(GroupMembers.First().Instance.Index)"
-                    title="Toggle quick reference" aria-label="Toggle quick reference">
-                <i class="bi @( IsQuickRefExpanded ? "bi-chevron-up" : "bi-chevron-down" )" aria-hidden="true"></i>
-                <span class="chevron-fallback ms-1">@(IsQuickRefExpanded ? "▴" : "▾")</span>
-            </button>
-        </div>
+        <MonsterNameDisplay 
+            Name="@($"{DisplayName} (�{GroupMembers.Count})")"
+            ReferenceId="@ReferenceId"
+            CombatantIndex="@GroupMembers.First().Instance.Index"
+            IsExpanded="@IsQuickRefExpanded"
+            OnShowStatblock="@OnShowStatblock"
+            OnToggleQuickReference="@OnToggleQuickReference" />
     </td>
     <td class="@TextClass">@Type</td>
     <td>
         <div class="d-flex flex-column gap-1" style="min-width: 150px;">
             @foreach (var member in GroupMembers)
             {
-                var memberTextClass = member.Instance.Status != Status.Alive ? "text-decoration-line-through text-muted" : "";
                 <div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="@memberTextClass">
+                        <small class="@(member.Instance.Status != Status.Alive ? "text-decoration-line-through text-muted" : "")">
                             #@member.Data.InstanceNumber: @member.Instance.HpCurrent / @member.Data.HpMax
                         </small>
                         @if (member.Instance.HpCurrent <= 0)
@@ -60,26 +48,13 @@
         </div>
     </td>
     <td class="@TextClass">
-        <span class="badge bg-secondary">AC @AC</span>
+        <ArmorClassDisplay ArmorClass="@AC" />
     </td>
     <td>
         <div class="d-flex flex-column gap-2">
             @foreach (var member in GroupMembers)
             {
-                <div class="d-flex align-items-center gap-2">
-                    @if (member.Instance.Status == Status.Alive)
-                    {
-                        <span class="badge bg-success">Alive</span>
-                    }
-                    else if (member.Instance.Status == Status.Unconscious)
-                    {
-                        <span class="badge bg-danger">Unconscious</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-dark">Dead</span>
-                    }
-                </div>
+                <StatusBadge Status="@member.Instance.Status" />
             }
         </div>
     </td>

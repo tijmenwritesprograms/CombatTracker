@@ -1,5 +1,5 @@
 using CombatTracker.WebAssembly.Models;
-using Microsoft.Extensions.Logging;
+
 
 namespace CombatTracker.WebAssembly.Services;
 
