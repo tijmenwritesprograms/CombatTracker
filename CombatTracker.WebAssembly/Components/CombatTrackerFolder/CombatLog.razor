@@ -1,0 +1,62 @@
+
+<div class="card">
+    <div class="card-header">
+        <h4>Combat Log</h4>
+    </div>
+    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+        @if (LogEntries.Count == 0)
+        {
+            <p class="text-muted">No entries yet.</p>
+        }
+        else
+        {
+            <div>
+                @foreach (var entry in LogEntries.OrderByDescending(e => e.Timestamp))
+                {
+                    var logClass = entry.Type switch
+                    {
+                        "Turn" => "log-turn",
+                        "Damage" => "log-damage",
+                        "Heal" => "log-heal",
+                        "Status" => "log-status",
+                        _ => ""
+                    };
+
+                    <div class="combat-log-entry @logClass fade-in">
+                        <div class="d-flex w-100 justify-content-between mb-1">
+                            <small class="text-muted fw-bold">Round @entry.Round</small>
+                            <small class="text-muted">@entry.Timestamp.ToString("HH:mm:ss")</small>
+                        </div>
+                        <div class="mb-1">
+                            @if (entry.Type == "Turn")
+                            {
+                                <span class="badge bg-primary me-1">Turn</span>
+                            }
+                            else if (entry.Type == "Damage")
+                            {
+                                <span class="badge bg-danger me-1">Damage</span>
+                            }
+                            else if (entry.Type == "Heal")
+                            {
+                                <span class="badge bg-success me-1">Heal</span>
+                            }
+                            else if (entry.Type == "Status")
+                            {
+                                <span class="badge bg-warning me-1">Status</span>
+                            }
+                            <span>@entry.Message</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// The collection of combat log entries to display.
+    /// </summary>
+    [Parameter]
+    public List<CombatLogEntry> LogEntries { get; set; } = new();
+}

@@ -1,0 +1,36 @@
+
+<div class="btn-group btn-group-sm">
+    @if (IsAlive)
+    {
+        <button class="btn btn-outline-danger" @onclick="OnDamageClicked" title="Apply Damage (D)">
+            <span class="bi bi-dash-circle"></span> Damage
+        </button>
+    }
+    <button class="btn btn-outline-success" @onclick="OnHealClicked" title="Apply Healing (H)">
+        <span class="bi bi-plus-circle"></span> Heal
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int CombatantIndex { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool IsAlive { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnDamage { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnHeal { get; set; }
+
+    private async Task OnDamageClicked()
+    {
+        await OnDamage.InvokeAsync(CombatantIndex);
+    }
+
+    private async Task OnHealClicked()
+    {
+        await OnHeal.InvokeAsync(CombatantIndex);
+    }
+}

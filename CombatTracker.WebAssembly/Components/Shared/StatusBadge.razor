@@ -1,0 +1,20 @@
+@if (Status == Models.Status.Alive)
+{
+    <span class="badge bg-success">Alive</span>
+}
+else if (Status == Models.Status.Unconscious)
+{
+    <span class="badge bg-danger">Unconscious</span>
+}
+else
+{
+    <span class="badge bg-dark">Dead</span>
+}
+
+@code {
+    /// <summary>
+    /// The status of the combatant.
+    /// </summary>
+    [Parameter]
+    public Models.Status Status { get; set; }
+}

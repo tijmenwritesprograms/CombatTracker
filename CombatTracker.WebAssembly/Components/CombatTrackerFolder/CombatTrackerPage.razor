@@ -1,0 +1,366 @@
+@page "/combat-tracker"
+@implements IDisposable
+
+@inject CombatStateService CombatStateService
+@inject NavigationManager NavigationManager
+@inject KeyboardShortcutService KeyboardShortcuts
+
+<PageTitle>Combat Tracker - D&D Combat Tracker</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Combat Tracker</h1>
+    <KeyboardShortcutsHelp />
+</div>
+
+@if (!CombatStateService.IsCombatActive)
+{
+    <div class="alert alert-warning" role="alert">
+        No active combat. Please <a href="/combat-setup">start a combat</a> first.
+    </div>
+}
+else
+{
+    <div class="row mb-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="mb-2 mb-md-0">
+                            <h4 class="mb-0">Round @CombatStateService.ActiveCombat!.Round</h4>
+                        </div>
+                        <div class="btn-group mb-2 mb-md-0">
+                            <button class="btn btn-outline-secondary" @onclick="PreviousTurn" title="Previous Turn (P)">
+                                <span class="bi bi-arrow-left"></span> Previous Turn
+                            </button>
+                            <button class="btn btn-primary" @onclick="NextTurn" title="Next Turn (N)">
+                                Next Turn <span class="bi bi-arrow-right"></span>
+                            </button>
+                        </div>
+                        <div>
+                            <button class="btn btn-danger" @onclick="EndCombat" title="End Combat (E)">
+                                <span class="bi bi-x-circle"></span> End Combat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Initiative Order</h4>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;"></th>
+                                <th style="width: 80px;">Initiative</th>
+                                <th>Name</th>
+                                <th style="width: 100px;">Type</th>
+                                <th style="width: 200px;">HP</th>
+                                <th style="width: 80px;">AC</th>
+                                <th style="width: 150px;">Status</th>
+                                <th style="width: 250px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var group in GetGroupedCombatants())
+                            {
+                                if (group.IsGroup)
+                                {
+                                    <GroupedCombatantRow GroupMembers="@group.Members" IsCurrentTurn="@group.IsCurrentTurn" IsQuickRefExpanded="@group.IsQuickRefExpanded" OnDamage="@ShowDamageModal"
+                                        OnHeal="@ShowHealModal" OnShowStatblock="@ShowStatblock" OnToggleQuickReference="@ToggleQuickReference" />
+                                }
+                                else
+                                {
+                                    <CombatantRow Instance="@group.Members[0].Instance" Data="@group.Members[0].Data" IsCurrentTurn="@group.IsCurrentTurn" IsQuickRefExpanded="@group.IsQuickRefExpanded"
+                                        OnDamage="@ShowDamageModal" OnHeal="@ShowHealModal" OnShowStatblock="@ShowStatblock" OnToggleQuickReference="@ToggleQuickReference" />
+                                }
+
+                                @if (!group.Members[0].Data.IsCharacter && group.IsQuickRefExpanded)
+                                {
+                                    <MonsterQuickReference Monster="@CombatStateService.GetMonsterById(group.Members[0].Data.ReferenceId)" />
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <CombatLog LogEntries="@CombatStateService.CombatLog" />
+        </div>
+    </div>
+
+    @* Modals *@
+    <DamageModal 
+        IsVisible="@showDamageModal"
+        Amount="@damageAmount"
+        AmountChanged="@((value) => damageAmount = value)"
+        OnClose="@CloseModals"
+        OnApply="@ApplyDamage" />
+
+    <HealModal 
+        IsVisible="@showHealModal"
+        Amount="@healAmount"
+        AmountChanged="@((value) => healAmount = value)"
+        OnClose="@CloseModals"
+        OnApply="@ApplyHeal" />
+
+    @* Monster Statblock Modal *@
+    @if (_showStatblockModal && _selectedMonster != null)
+    {
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);" @onclick="CloseStatblockModal">
+            <div class="modal-dialog modal-xl" role="document" @onclick:stopPropagation="true">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@_selectedMonster.Name Statblock</h5>
+                        <button type="button" class="btn-close" @onclick="CloseStatblockModal"></button>
+                    </div>
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                        <MonsterStatblockDisplay Monster="_selectedMonster" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseStatblockModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool showDamageModal;
+    private bool showHealModal;
+    private int selectedCombatantIndex;
+    private int damageAmount = 5;
+    private int healAmount = 5;
+    private int? _expandedQuickRef = null;
+    private bool _showStatblockModal = false;
+    private Monster? _selectedMonster = null;
+
+    /// <summary>
+    /// Helper class to represent a group of combatants (or a single combatant).
+    /// </summary>
+    private class CombatantGroup
+    {
+        public List<(CombatantInstance Instance, CombatantSetupData Data)> Members { get; set; } = new();
+        public bool IsGroup => Members.Count > 1;
+        public bool IsCurrentTurn { get; set; }
+        public bool IsQuickRefExpanded { get; set; }
+    }
+
+    /// <summary>
+    /// Groups combatants by their GroupId for display in the initiative table.
+    /// </summary>
+    private List<CombatantGroup> GetGroupedCombatants()
+    {
+        var allCombatants = CombatStateService.GetCombatantsWithData();
+        var groups = new List<CombatantGroup>();
+        var processedIndices = new HashSet<int>();
+
+        for (int i = 0; i < allCombatants.Count; i++)
+        {
+            if (processedIndices.Contains(i))
+                continue;
+
+            var (instance, data) = allCombatants[i];
+            var group = new CombatantGroup();
+            group.Members.Add((instance, data));
+
+            // Find all members of this group using CombatantInstance.GroupId
+            if (instance.GroupId.HasValue)
+            {
+                for (int j = i + 1; j < allCombatants.Count; j++)
+                {
+                    var (otherInstance, otherData) = allCombatants[j];
+                    if (otherInstance.GroupId == instance.GroupId)
+                    {
+                        group.Members.Add((otherInstance, otherData));
+                        processedIndices.Add(j);
+                    }
+                }
+            }
+
+            processedIndices.Add(i);
+
+            // Set group properties
+            group.IsCurrentTurn = group.Members.Any(m => m.Instance.Index == CombatStateService.ActiveCombat!.TurnIndex);
+            group.IsQuickRefExpanded = group.Members.Any(m => _expandedQuickRef == m.Instance.Index);
+
+            groups.Add(group);
+        }
+
+        return groups;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CombatStateService.InitializeAsync();
+            await KeyboardShortcuts.InitializeAsync();
+            RegisterKeyboardShortcuts();
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        CombatStateService.OnChange += RefreshState;
+        
+        // Redirect if no active combat
+        if (!CombatStateService.IsCombatActive)
+        {
+            // Allow the page to render the warning message
+        }
+    }
+
+    private void RegisterKeyboardShortcuts()
+    {
+        // Register keyboard shortcuts for combat actions
+        KeyboardShortcuts.RegisterShortcut("n", async () => 
+        {
+            if (CombatStateService.IsCombatActive)
+            {
+                NextTurn();
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("p", async () => 
+        {
+            if (CombatStateService.IsCombatActive)
+            {
+                PreviousTurn();
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("d", async () => 
+        {
+            if (CombatStateService.IsCombatActive && !showDamageModal && !showHealModal)
+            {
+                var currentIndex = CombatStateService.ActiveCombat?.TurnIndex ?? 0;
+                ShowDamageModal(currentIndex);
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("h", async () => 
+        {
+            if (CombatStateService.IsCombatActive && !showDamageModal && !showHealModal)
+            {
+                var currentIndex = CombatStateService.ActiveCombat?.TurnIndex ?? 0;
+                ShowHealModal(currentIndex);
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        KeyboardShortcuts.RegisterShortcut("escape", async () => 
+        {
+            CloseModals();
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void RefreshState()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void NextTurn()
+    {
+        CombatStateService.NextTurn();
+    }
+
+    private void PreviousTurn()
+    {
+        CombatStateService.PreviousTurn();
+    }
+
+    private void ShowDamageModal(int combatantIndex)
+    {
+        selectedCombatantIndex = combatantIndex;
+        damageAmount = 5;
+        showDamageModal = true;
+    }
+
+    private void ShowHealModal(int combatantIndex)
+    {
+        selectedCombatantIndex = combatantIndex;
+        healAmount = 5;
+        showHealModal = true;
+    }
+
+    private void CloseModals()
+    {
+        showDamageModal = false;
+        showHealModal = false;
+    }
+
+    private void ApplyDamage()
+    {
+        if (damageAmount > 0)
+        {
+            CombatStateService.ApplyDamage(selectedCombatantIndex, damageAmount);
+        }
+        CloseModals();
+    }
+
+    private void ApplyHeal()
+    {
+        if (healAmount > 0)
+        {
+            CombatStateService.ApplyHealing(selectedCombatantIndex, healAmount);
+        }
+        CloseModals();
+    }
+
+    private void EndCombat()
+    {
+        CombatStateService.EndCombat();
+        NavigationManager.NavigateTo("/combat-setup");
+    }
+
+    private void ShowStatblock(int monsterId)
+    {
+        _selectedMonster = CombatStateService.GetMonsterById(monsterId);
+        if (_selectedMonster != null)
+        {
+            _showStatblockModal = true;
+        }
+    }
+
+    private void CloseStatblockModal()
+    {
+        _showStatblockModal = false;
+        _selectedMonster = null;
+    }
+
+    private void ToggleQuickReference(int combatantIndex)
+    {
+        if (_expandedQuickRef == combatantIndex)
+        {
+            _expandedQuickRef = null;
+        }
+        else
+        {
+            _expandedQuickRef = combatantIndex;
+        }
+    }
+
+    public void Dispose()
+    {
+        CombatStateService.OnChange -= RefreshState;
+        
+        // Dispose keyboard shortcuts service
+        // Note: We can't await here in a synchronous Dispose, but the service handles cleanup properly
+        _ = KeyboardShortcuts.DisposeAsync();
+    }
+}

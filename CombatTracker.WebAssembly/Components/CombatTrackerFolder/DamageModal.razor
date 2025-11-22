@@ -1,0 +1,69 @@
+@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Apply Damage</h5>
+                    <button type="button" class="btn-close" @onclick="OnClose"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Damage Amount</label>
+                        <input type="number" class="form-control" @bind="Amount" min="1" />
+                    </div>
+                    <div class="btn-group w-100 mb-2">
+                        <button class="btn btn-outline-secondary" @onclick="() => Amount = 5">5</button>
+                        <button class="btn btn-outline-secondary" @onclick="() => Amount = 10">10</button>
+                        <button class="btn btn-outline-secondary" @onclick="() => Amount = 15">15</button>
+                        <button class="btn btn-outline-secondary" @onclick="() => Amount = 20">20</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="OnClose">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="HandleApply">Apply Damage</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Whether the modal is visible.
+    /// </summary>
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    /// <summary>
+    /// The damage amount to apply.
+    /// </summary>
+    [Parameter]
+    public int Amount { get; set; } = 5;
+
+    /// <summary>
+    /// Callback when the amount changes.
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> AmountChanged { get; set; }
+
+    /// <summary>
+    /// Callback when the modal should be closed.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    /// <summary>
+    /// Callback when damage should be applied.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnApply { get; set; }
+
+    private async Task HandleApply()
+    {
+        if (Amount > 0)
+        {
+            await OnApply.InvokeAsync();
+        }
+    }
+}
