@@ -6,12 +6,13 @@ namespace CombatTracker.WebAssembly.Tests.ModelValidation;
 /// <summary>
 /// Tests for AbilityScores model and modifier calculations
 /// 
-/// NOTE: The current implementation uses C# integer division which truncates toward zero.
-/// This differs slightly from D&D 5e official rules which use floor division (round down).
+/// TODO: The current implementation uses C# integer division which truncates toward zero.
+/// This differs from D&D 5e official rules which use floor division (round down).
 /// For odd ability scores below 10 (e.g., 1, 3, 5, 7, 9), the modifiers differ:
 /// - Score 1: Implementation returns -4, D&D 5e expects -5
 /// - Score 9: Implementation returns 0, D&D 5e expects -1
 /// These tests validate the current implementation behavior.
+/// To fix: Change GetModifier to use Math.Floor((abilityScore - 10) / 2.0)
 /// </summary>
 public class AbilityScoresTests
 {
@@ -55,10 +56,10 @@ public class AbilityScoresTests
 
     [Theory]
     [InlineData(1, -4)]   // (1-10)/2 = -9/2 = -4 (C# integer division truncates toward zero)
-                          // NOTE: D&D 5e would use -5 (floor division), but implementation uses truncation
+                          // TODO: D&D 5e would use -5 (floor division). Fix: use Math.Floor((score - 10) / 2.0)
     [InlineData(8, -1)]   // (8-10)/2 = -2/2 = -1 (correct for both methods)
     [InlineData(9, 0)]    // (9-10)/2 = -1/2 = 0 (C# truncation)
-                          // NOTE: D&D 5e would use -1 (floor division), but implementation uses truncation
+                          // TODO: D&D 5e would use -1 (floor division). Fix: use Math.Floor((score - 10) / 2.0)
     [InlineData(10, 0)]   // (10-10)/2 = 0
     [InlineData(11, 0)]   // (11-10)/2 = 1/2 = 0 (truncation)
     [InlineData(12, 1)]   // (12-10)/2 = 2/2 = 1

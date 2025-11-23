@@ -535,7 +535,7 @@ Tests are organized into the following categories:
 
 #### 8.3 Code Coverage Goals  
 - **Target:** >80% line coverage on core business logic
-- **Current:** ~46% overall, 100% on data models
+- **Current:** 45.9% overall, 100% on data models
 - **Priority areas:**
   - Service layer (CombatStateService, PartyStateService, StorageStateService)
   - Component event handlers and user interactions
