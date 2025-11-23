@@ -1,0 +1,12 @@
+@if (IsCurrentTurn)
+{
+    <div class="initiative-indicator" title="Current Turn" aria-label="Current turn indicator"></div>
+}
+
+@code {
+    /// <summary>
+    /// Whether this combatant's turn is currently active.
+    /// </summary>
+    [Parameter]
+    public bool IsCurrentTurn { get; set; }
+}

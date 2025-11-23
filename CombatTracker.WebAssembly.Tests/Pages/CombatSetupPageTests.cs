@@ -1,5 +1,5 @@
 using Bunit;
-using CombatTracker.WebAssembly.Components.Pages;
+using CombatTracker.WebAssembly.Components.CombatSetup;
 using CombatTracker.WebAssembly.Models;
 using CombatTracker.WebAssembly.Services;
 using Microsoft.Extensions.DependencyInjection;
