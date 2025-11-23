@@ -1,0 +1,35 @@
+
+<div class="card combat-log-card">
+    <div class="card-header">
+        <h4>Combat Log</h4>
+    </div>
+    <div class="card-body p-2">
+        @if (LogEntries == null || !LogEntries.Any())
+        {
+            <p class="text-muted text-center py-3">No combat events yet.</p>
+        }
+        else
+        {
+            <div class="combat-log-container">
+                @foreach (var entry in LogEntries.OrderByDescending(e => e.Timestamp).Take(20))
+                {
+                    <div class="combat-log-entry log-@entry.Type.ToLower() fade-in">
+                        <div class="log-entry-header">
+                            <small class="text-muted">Round @entry.Round</small>
+                            <small class="text-muted">@entry.Timestamp.ToString("HH:mm:ss")</small>
+                        </div>
+                        <div class="log-entry-message">@entry.Message</div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// List of combat log entries to display.
+    /// </summary>
+    [Parameter]
+    public List<CombatLogEntry> LogEntries { get; set; } = new();
+}
