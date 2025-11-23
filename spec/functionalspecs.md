@@ -493,9 +493,103 @@ The navigation is implemented using Blazor WebAssembly routing with a collapsibl
 
 ---
 
-### 8. Future Enhancements (Optional)  
+### 8. Testing Strategy  
+
+#### 8.1 Testing Infrastructure  
+The Combat Tracker employs a comprehensive testing strategy to ensure reliability and maintainability:
+
+**Test Framework:**
+- **xUnit** for unit and integration testing
+- **bUnit** for Blazor component testing  
+- **Moq** for mocking dependencies (JSInterop, services)
+- **Coverlet** for code coverage collection
+
+#### 8.2 Test Organization  
+Tests are organized into the following categories:
+
+**1. Model Validation Tests** (`ModelValidation/`)
+- Character validation (required fields, ranges, string lengths)
+- Monster validation (D&D 5e stat blocks, ability scores)
+- Party validation (name constraints, character lists)
+- AbilityScores calculation tests (D&D 5e modifier formulas)
+
+**2. Service Unit Tests** (`Services/`)
+- PartyStateService: Party and character CRUD operations
+- CombatStateService: Combat flow, turn progression, HP management
+- StorageStateService: Data persistence, export/import
+- ApiKeyService: API key management
+- OpenAIStatblockParserService: AI statblock parsing with retry logic
+- LocalStorageService: Browser storage interaction via JSInterop
+
+**3. Component Tests** (`Components/`)
+- Shared components: ArmorClassDisplay, HpDisplay, StatusBadge, InitiativeDisplay
+- Combat tracker components: CombatLog, DamageModal, HealModal, MonsterQuickReference
+- Page components: CombatSetupPage, CombatTrackerPage, PartyManagementPage
+- Layout components: NavMenu
+
+**4. Test Data Builders** (`TestDataBuilders.cs`)
+- Fluent builders for creating test objects with sensible defaults
+- `CharacterBuilder`, `MonsterBuilder`, `PartyBuilder`, `CombatBuilder`
+- Common fixtures: CreateFighter(), CreateWizard(), CreateGoblin(), CreateOrc()
+- Reduces test boilerplate and improves maintainability
+
+#### 8.3 Code Coverage Goals  
+- **Target:** >80% line coverage on core business logic
+- **Current:** ~46% overall, 100% on data models
+- **Priority areas:**
+  - Service layer (CombatStateService, PartyStateService, StorageStateService)
+  - Component event handlers and user interactions
+  - Data validation and edge cases
+
+#### 8.4 Continuous Integration  
+Tests run automatically in CI/CD pipeline:
+- **PR Pipeline:** Build → Test → Coverage Report
+- **Coverage Reporting:** HTML and text summary generated via ReportGenerator
+- **Artifacts:** Coverage reports uploaded for review
+- **Build Status:** PR blocked if tests fail
+
+#### 8.5 Testing Best Practices  
+- **Arrange-Act-Assert:** All tests follow AAA pattern for clarity
+- **Single Responsibility:** Each test validates one behavior
+- **Mock External Dependencies:** JSInterop and services mocked for isolation
+- **Data Builders:** Use test builders for consistent test data
+- **Descriptive Names:** Test names describe the scenario and expected outcome
+- **Edge Cases:** Test boundary conditions, null values, and error scenarios
+
+#### 8.6 Running Tests Locally  
+```bash
+# Run all tests
+dotnet test
+
+# Run tests with coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Generate coverage report
+reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" \
+  -targetdir:"TestResults/coveragereport" \
+  -reporttypes:"Html;TextSummary"
+
+# Run specific test category
+dotnet test --filter "FullyQualifiedName~ModelValidation"
+dotnet test --filter "FullyQualifiedName~Services"
+dotnet test --filter "FullyQualifiedName~Components"
+```
+
+#### 8.7 Test Maintenance  
+- Tests are maintained alongside feature development
+- Refactoring updates tests to match new code structure
+- Deprecated features have tests removed or updated
+- Test failures investigated and fixed promptly
+- Coverage gaps addressed in subsequent iterations
+
+---
+
+### 9. Future Enhancements (Optional)  
 - Condition tracking (poisoned, stunned, etc.).  
 - Automated dice roller integration.  
 - Map or token view.  
 - Voice narration output using TTS.  
-- Integration with D&D Beyond or Foundry VTT.  
+- Integration with D&D Beyond or Foundry VTT.
+- End-to-end testing with Playwright for complete user workflows
+- Performance testing for large combats (20+ combatants)
+- Accessibility testing with screen readers and keyboard navigation  
