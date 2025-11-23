@@ -1,13 +1,12 @@
-
-<div class="btn-group btn-group-sm">
+<div class="btn-group btn-group-sm combat-actions-group">
     @if (IsAlive)
     {
         <button class="btn btn-outline-danger" @onclick="OnDamageClicked" title="Apply Damage (D)">
-            <span class="bi bi-dash-circle"></span> Damage
+            <span class="bi bi-dash-circle"></span> <span class="action-text">Damage</span>
         </button>
     }
     <button class="btn btn-outline-success" @onclick="OnHealClicked" title="Apply Healing (H)">
-        <span class="bi bi-plus-circle"></span> Heal
+        <span class="bi bi-plus-circle"></span> <span class="action-text">Heal</span>
     </button>
 </div>
 
