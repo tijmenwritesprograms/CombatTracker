@@ -1,4 +1,3 @@
-
 <div class="card combat-log-card">
     <div class="card-header">
         <h4>Combat Log</h4>
@@ -6,7 +5,7 @@
     <div class="card-body p-2">
         @if (LogEntries == null || !LogEntries.Any())
         {
-            <p class="text-muted text-center py-3">No combat events yet.</p>
+            <p class="text-muted text-center py-3">No entries yet</p>
         }
         else
         {
@@ -15,6 +14,7 @@
                 {
                     <div class="combat-log-entry log-@entry.Type.ToLower() fade-in">
                         <div class="log-entry-header">
+                            <span class="badge @GetBadgeClass(entry.Type)">@entry.Type</span>
                             <small class="text-muted">Round @entry.Round</small>
                             <small class="text-muted">@entry.Timestamp.ToString("HH:mm:ss")</small>
                         </div>
@@ -32,4 +32,21 @@
     /// </summary>
     [Parameter]
     public List<CombatLogEntry> LogEntries { get; set; } = new();
+
+    /// <summary>
+    /// Gets the appropriate Bootstrap badge class based on the entry type.
+    /// </summary>
+    /// <param name="type">The type of log entry.</param>
+    /// <returns>Bootstrap badge class string.</returns>
+    private string GetBadgeClass(string type)
+    {
+        return type switch
+        {
+            "Turn" => "bg-primary",
+            "Damage" => "bg-danger",
+            "Heal" => "bg-success",
+            "Status" => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
 }
