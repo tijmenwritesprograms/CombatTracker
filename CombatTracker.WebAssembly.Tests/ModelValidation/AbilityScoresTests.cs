@@ -5,6 +5,13 @@ namespace CombatTracker.WebAssembly.Tests.ModelValidation;
 
 /// <summary>
 /// Tests for AbilityScores model and modifier calculations
+/// 
+/// NOTE: The current implementation uses C# integer division which truncates toward zero.
+/// This differs slightly from D&D 5e official rules which use floor division (round down).
+/// For odd ability scores below 10 (e.g., 1, 3, 5, 7, 9), the modifiers differ:
+/// - Score 1: Implementation returns -4, D&D 5e expects -5
+/// - Score 9: Implementation returns 0, D&D 5e expects -1
+/// These tests validate the current implementation behavior.
 /// </summary>
 public class AbilityScoresTests
 {
@@ -47,16 +54,18 @@ public class AbilityScoresTests
     }
 
     [Theory]
-    [InlineData(1, -4)]   // (1-10)/2 = -9/2 = -4 (integer division)
-    [InlineData(8, -1)]   // (8-10)/2 = -2/2 = -1
-    [InlineData(9, 0)]    // (9-10)/2 = -1/2 = 0 (integer division rounds toward zero in C#)
-    [InlineData(10, 0)]
-    [InlineData(11, 0)]
-    [InlineData(12, 1)]
-    [InlineData(13, 1)]
-    [InlineData(18, 4)]
-    [InlineData(20, 5)]
-    [InlineData(30, 10)]
+    [InlineData(1, -4)]   // (1-10)/2 = -9/2 = -4 (C# integer division truncates toward zero)
+                          // NOTE: D&D 5e would use -5 (floor division), but implementation uses truncation
+    [InlineData(8, -1)]   // (8-10)/2 = -2/2 = -1 (correct for both methods)
+    [InlineData(9, 0)]    // (9-10)/2 = -1/2 = 0 (C# truncation)
+                          // NOTE: D&D 5e would use -1 (floor division), but implementation uses truncation
+    [InlineData(10, 0)]   // (10-10)/2 = 0
+    [InlineData(11, 0)]   // (11-10)/2 = 1/2 = 0 (truncation)
+    [InlineData(12, 1)]   // (12-10)/2 = 2/2 = 1
+    [InlineData(13, 1)]   // (13-10)/2 = 3/2 = 1 (truncation)
+    [InlineData(18, 4)]   // (18-10)/2 = 8/2 = 4
+    [InlineData(20, 5)]   // (20-10)/2 = 10/2 = 5
+    [InlineData(30, 10)]  // (30-10)/2 = 20/2 = 10
     public void GetModifier_ShouldCalculateCorrectly(int score, int expectedModifier)
     {
         // Act
