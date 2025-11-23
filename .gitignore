@@ -54,3 +54,7 @@ yarn-error.log
 
 # Aspire
 .aspire/
+
+# Test Results
+TestResults/
+coverage.cobertura.xml
