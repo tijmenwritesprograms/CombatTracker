@@ -5,6 +5,7 @@
 @inject CombatStateService CombatStateService
 @inject NavigationManager NavigationManager
 @inject StorageStateService StorageStateService
+@inject IWebAssemblyHostEnvironment env
 
 <PageTitle>Combat Setup - D&D Combat Tracker</PageTitle>
 
@@ -100,9 +101,10 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary">Add Monster(s)</button>
-#if DEBUG
-                <button type="button" class="btn btn-outline-danger ms-2" @onclick="AddOrcTestMonster">Add Orc (Test)</button>
-#endif
+                    @if (env.IsDevelopment())
+                    {
+                        <button type="button" class="btn btn-outline-danger ms-2" @onclick="AddOrcTestMonster">Add Orc (Test)</button>
+                    }
                 </EditForm>
             </div>
         </div>
