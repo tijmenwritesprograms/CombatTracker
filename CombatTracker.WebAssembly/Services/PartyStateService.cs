@@ -55,6 +55,7 @@ public class PartyStateService
     /// </summary>
     public void SeedSampleParty()
     {
+#if DEBUG
         // Avoid duplicating the same seeded party multiple times by checking existing names.
         if (_parties.Any(p => p.Name == "The Silver Blades"))
         {
@@ -113,6 +114,7 @@ public class PartyStateService
 
         // Final notification (CreateParty and AddCharacter already trigger notifications, but ensure observers are updated)
         NotifyStateChanged();
+#endif
     }
 
     /// <summary>

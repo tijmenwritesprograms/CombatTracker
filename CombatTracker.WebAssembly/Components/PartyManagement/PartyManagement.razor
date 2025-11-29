@@ -12,9 +12,11 @@
         <button class="btn btn-primary" @onclick="ShowCreatePartyForm" aria-label="Create new party">
             <span class="bi bi-plus-circle me-2"></span>Create New Party
         </button>
+#if DEBUG
         <button class="btn btn-outline-secondary ms-2" @onclick="SeedTestParty" aria-label="Seed test party with sample data">
             Seed Test Party
         </button>
+#endif
     </div>
 
     @if (_showPartyForm)
