@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace CombatTracker.WebAssembly.Models;
 
@@ -278,7 +279,7 @@ public class AbilityScores
     /// </summary>
     public static int GetModifier(int abilityScore)
     {
-        return (abilityScore - 10) / 2;
+        return (int)Math.Floor((abilityScore - 10) / 2.0);
     }
 
     /// <summary>
